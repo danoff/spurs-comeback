@@ -1,30 +1,488 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spurs Prediction Model</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spurs Comeback Rigor Track</title>
+  <style>
+    :root {
+      --fiesta-teal: #00B2A9;
+      --fiesta-pink: #EF426F;
+      --fiesta-orange: #FF8200;
+      --bg-dark: #0f172a;
+      --panel: #111c33;
+      --panel-soft: #18243d;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --line: rgba(203, 213, 225, 0.22);
+      --success: #34d399;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0, 178, 169, 0.16), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(239, 66, 111, 0.14), transparent 32rem),
+        var(--bg-dark);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    a { color: var(--fiesta-teal); }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(17, 28, 51, 0.96), rgba(15, 23, 42, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--fiesta-pink);
+      box-shadow: 0 0 0 5px rgba(239, 66, 111, 0.13);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 6vw, 4.6rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    h2, h3 { margin-top: 0; }
+
+    .hero-copy {
+      max-width: 66ch;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .kpi {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .kpi-numeral {
+      color: var(--fiesta-orange);
+      font-weight: bold;
+      font-size: clamp(1.6rem, 3vw, 2.3rem);
+      line-height: 1.05;
+    }
+
+    .citation-link {
+      display: inline-flex;
+      margin-left: 6px;
+      color: var(--fiesta-teal);
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .control {
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .control:first-of-type { border-top: 0; padding-top: 0; }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .control-label output { color: var(--fiesta-orange); }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin: 0 0 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--fiesta-teal);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb { background: var(--fiesta-teal); }
+    input[type="range"]::-moz-range-thumb { background: var(--fiesta-teal); }
+
+    .gauge-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+    }
+
+    svg { max-width: 100%; height: auto; }
+
+    .gauge-track {
+      fill: none;
+      stroke: rgba(203, 213, 225, 0.16);
+      stroke-width: 26;
+      stroke-linecap: round;
+    }
+
+    .gauge-progress {
+      fill: none;
+      stroke: var(--fiesta-teal);
+      stroke-width: 26;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 12px rgba(0, 178, 169, 0.45));
+      transition: stroke-dasharray 180ms ease;
+    }
+
+    .gauge-label { fill: var(--muted); font-size: 15px; font-weight: 700; text-anchor: middle; }
+    .gauge-value { fill: var(--fiesta-orange); font-size: 44px; font-weight: 900; text-anchor: middle; }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .mini-panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel-soft);
+      padding: 16px;
+    }
+
+    .mini-panel p { margin: 0; color: var(--muted); }
+
+    .math-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--muted);
+    }
+
+    .math-list strong { color: var(--text); }
+
+    .footer-note {
+      margin: 24px auto 0;
+      padding: 18px 0 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.98rem;
+    }
+
+    .footer-note em {
+      display: inline-block;
+      max-width: 760px;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+
+    @media (max-width: 860px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .kpi-grid, .panel-grid { grid-template-columns: 1fr; }
+      .shell { width: min(100% - 20px, 1180px); padding: 18px 0; }
+      .card { padding: 18px; border-radius: 20px; }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>San Antonio Spurs Prediction Model</h1>
-        <p>Estimate the Spurs' chances of winning the NBA Finals.</p>
+  <div class="shell">
+    <header class="hero" aria-labelledby="page-title">
+      <section class="card">
+        <p class="eyebrow">daLab Rigor Track pilot</p>
+        <h1 id="page-title">Spurs 0–2 comeback scenario model</h1>
+        <p class="hero-copy">
+          This single-file artifact keeps the math transparent: the series probability is computed by exact enumeration of the five remaining games, then shown beside a sourced historical prior for teams attempting to recover from a 0–2 playoff deficit.
+        </p>
+        <div class="kpi-grid" aria-label="Model headline numbers">
+          <div class="kpi">
+            <span>Exact enumeration</span>
+            <strong id="dpKpi" class="kpi-numeral">0.0%</strong>
+          </div>
+          <div class="kpi">
+            <span>Monte Carlo beta prior</span>
+            <strong id="mcKpi" class="kpi-numeral">0.0%</strong>
+          </div>
+          <div class="kpi">
+            <span>Historical Prior 13.5% <a href="https://www.basketball-reference.com/playoffs/" target="_blank" rel="noopener noreferrer" class="citation-link">[Source ↗]</a></span>
+            <strong class="kpi-numeral">13.5%</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="integrity-title">
+        <h2 id="integrity-title">Model integrity notes</h2>
+        <ul class="math-list">
+          <li><strong>Exact Enumeration (DP):</strong> enumerates every win/loss path over Games 3–7 and counts only paths that reach four Spurs wins.</li>
+          <li><strong>Monte Carlo Beta Prior:</strong> samples around the fixed 13.5% historical prior and blends it with the exact scenario output for uncertainty display only.</li>
+          <li><strong>No live lines:</strong> sliders are scenario levers, not sportsbook inputs or claims about current market prices.</li>
+        </ul>
+      </section>
     </header>
-    <main>
-        <section id="model">
-            <h2>Interactive Model</h2>
-            <div id="controls">
-                <!-- Controls for the prediction model will go here -->
-            </div>
-            <div id="results">
-                <!-- Results of the prediction model will be displayed here -->
-            </div>
-        </section>
+
+    <main class="layout">
+      <section class="card" aria-labelledby="controls-title">
+        <h2 id="controls-title">Scenario levers</h2>
+        <p class="hint">Each lever ranges from 0 to 10 percentage points and updates the ARIA value text while you drag.</p>
+
+        <div class="control">
+          <label class="control-label" for="homeLift">Home floor lift <output id="homeLiftValue" for="homeLift">0 pp</output></label>
+          <p class="hint">Adds to Games 3, 4, and 6.</p>
+          <input id="homeLift" type="range" min="0" max="10" step="1" value="0" aria-label="Home floor lift" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 pp" data-unit="pp" />
+        </div>
+
+        <div class="control">
+          <label class="control-label" for="roadLift">Road steal lift <output id="roadLiftValue" for="roadLift">0 pp</output></label>
+          <p class="hint">Adds to Games 5 and 7.</p>
+          <input id="roadLift" type="range" min="0" max="10" step="1" value="0" aria-label="Road steal lift" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 pp" data-unit="pp" />
+        </div>
+
+        <div class="control">
+          <label class="control-label" for="defenseLift">Defensive matchup lift <output id="defenseLiftValue" for="defenseLift">0 pp</output></label>
+          <p class="hint">Applies to all remaining games.</p>
+          <input id="defenseLift" type="range" min="0" max="10" step="1" value="0" aria-label="Defensive matchup lift" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 pp" data-unit="pp" />
+        </div>
+
+        <div class="control">
+          <label class="control-label" for="lateSeriesLift">Late-series execution lift <output id="lateSeriesLiftValue" for="lateSeriesLift">0 pp</output></label>
+          <p class="hint">Adds to Games 6 and 7 if the series reaches them.</p>
+          <input id="lateSeriesLift" type="range" min="0" max="10" step="1" value="0" aria-label="Late-series execution lift" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 pp" data-unit="pp" />
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="results-title">
+        <h2 id="results-title">Series win probability gauge</h2>
+        <div class="gauge-wrap">
+          <svg id="probabilityGauge" viewBox="0 0 260 180" role="img" aria-label="Series win probability gauge">
+            <path class="gauge-track" d="M 35 140 A 95 95 0 0 1 225 140" />
+            <path id="gaugeProgress" class="gauge-progress" d="M 35 140 A 95 95 0 0 1 225 140" pathLength="100" stroke-dasharray="0 100" />
+            <text x="130" y="112" class="gauge-label">Exact scenario</text>
+            <text id="gaugeText" x="130" y="150" class="gauge-value">0.0%</text>
+          </svg>
+        </div>
+
+        <div class="panel-grid">
+          <div class="mini-panel">
+            <h3>Remaining game probabilities</h3>
+            <p id="gameVector">G3 0.0% · G4 0.0% · G5 0.0% · G6 0.0% · G7 0.0%</p>
+          </div>
+          <div class="mini-panel">
+            <h3>Accessible update status</h3>
+            <p id="liveStatus" aria-live="polite">Model ready.</p>
+          </div>
+        </div>
+      </section>
     </main>
-    <footer>
-        <p>&copy; 2026 Spurs Prediction Model</p>
+
+    <footer class="footer-note">
+      <em>Sovereign single-file artifact · No external libraries<br />For visualization and scenario analysis only. This is not betting advice and does not use live sportsbook lines.</em>
     </footer>
-    <script src="app.js"></script>
+  </div>
+
+  <script>
+    const HISTORICAL_PRIOR = 0.135;
+    const BETA_CONCENTRATION = 74;
+    const BETA_ALPHA = HISTORICAL_PRIOR * BETA_CONCENTRATION;
+    const BETA_BETA = (1 - HISTORICAL_PRIOR) * BETA_CONCENTRATION;
+    const MONTE_CARLO_SAMPLES = 4000;
+
+    const sliders = Array.from(document.querySelectorAll('input[type="range"]'));
+    const dpKpi = document.getElementById('dpKpi');
+    const mcKpi = document.getElementById('mcKpi');
+    const gaugeProgress = document.getElementById('gaugeProgress');
+    const gaugeText = document.getElementById('gaugeText');
+    const gameVector = document.getElementById('gameVector');
+    const liveStatus = document.getElementById('liveStatus');
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function formatPercent(value) {
+      return `${(value * 100).toFixed(1)}%`;
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    function updateSliderAria(slider) {
+      const unit = slider.dataset.unit || 'pts';
+      const value = slider.value;
+      slider.setAttribute('aria-valuenow', value);
+      slider.setAttribute('aria-valuetext', `${value} ${unit}`);
+      const output = document.getElementById(`${slider.id}Value`);
+      if (output) output.textContent = `${value} ${unit}`;
+    }
+
+    function readLevers() {
+      return {
+        homeLift: Number(document.getElementById('homeLift').value) / 100,
+        roadLift: Number(document.getElementById('roadLift').value) / 100,
+        defenseLift: Number(document.getElementById('defenseLift').value) / 100,
+        lateSeriesLift: Number(document.getElementById('lateSeriesLift').value) / 100
+      };
+    }
+
+    function remainingGameProbabilities(levers) {
+      const baseHome = 0.50;
+      const baseRoad = 0.36;
+      return [
+        clamp(baseHome + levers.homeLift + levers.defenseLift, 0.01, 0.99),
+        clamp(baseHome + levers.homeLift + levers.defenseLift, 0.01, 0.99),
+        clamp(baseRoad + levers.roadLift + levers.defenseLift, 0.01, 0.99),
+        clamp(baseHome + levers.homeLift + levers.defenseLift + levers.lateSeriesLift, 0.01, 0.99),
+        clamp(baseRoad + levers.roadLift + levers.defenseLift + levers.lateSeriesLift, 0.01, 0.99)
+      ];
+    }
+
+    function exactEnumerationDP(probabilities) {
+      let states = new Map([[0, 1]]);
+      for (const pWin of probabilities) {
+        const next = new Map();
+        for (const [wins, pathProbability] of states.entries()) {
+          next.set(wins + 1, (next.get(wins + 1) || 0) + pathProbability * pWin);
+          next.set(wins, (next.get(wins) || 0) + pathProbability * (1 - pWin));
+        }
+        states = next;
+      }
+      return Array.from(states.entries()).reduce((total, [wins, pathProbability]) => {
+        return wins >= 4 ? total + pathProbability : total;
+      }, 0);
+    }
+
+    function standardNormal() {
+      const u1 = Math.max(Number.EPSILON, Math.random());
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    function gammaSample(shape) {
+      if (shape < 1) {
+        return gammaSample(shape + 1) * Math.pow(Math.random(), 1 / shape);
+      }
+      const d = shape - 1 / 3;
+      const c = 1 / Math.sqrt(9 * d);
+      while (true) {
+        let x;
+        let v;
+        do {
+          x = standardNormal();
+          v = 1 + c * x;
+        } while (v <= 0);
+        v = v * v * v;
+        const u = Math.random();
+        if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+        if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+      }
+    }
+
+    function betaSample(alpha, beta) {
+      const x = gammaSample(alpha);
+      const y = gammaSample(beta);
+      return x / (x + y);
+    }
+
+    function monteCarloBetaPrior(dpProbability) {
+      let total = 0;
+      for (let i = 0; i < MONTE_CARLO_SAMPLES; i += 1) {
+        const priorDraw = betaSample(BETA_ALPHA, BETA_BETA);
+        total += (dpProbability + priorDraw) / 2;
+      }
+      return total / MONTE_CARLO_SAMPLES;
+    }
+
+    function updateModel() {
+      sliders.forEach(updateSliderAria);
+      const probabilities = remainingGameProbabilities(readLevers());
+      const dpProbability = exactEnumerationDP(probabilities);
+      const mcProbability = monteCarloBetaPrior(dpProbability);
+      const gaugeValue = clamp(dpProbability * 100, 0, 100);
+
+      dpKpi.textContent = formatPercent(dpProbability);
+      mcKpi.textContent = formatPercent(mcProbability);
+      gaugeText.textContent = formatPercent(dpProbability);
+      gaugeProgress.setAttribute('stroke-dasharray', `${gaugeValue} ${100 - gaugeValue}`);
+      gameVector.textContent = probabilities.map((p, index) => `G${index + 3} ${formatPercent(p)}`).join(' · ');
+      liveStatus.textContent = `Updated exact enumeration to ${formatPercent(dpProbability)} and Monte Carlo beta prior display to ${formatPercent(mcProbability)}.`;
+    }
+
+    const debouncedUpdateModel = debounce(updateModel, 120);
+
+    sliders.forEach((slider) => {
+      updateSliderAria(slider);
+      slider.addEventListener('input', () => {
+        updateSliderAria(slider);
+        debouncedUpdateModel();
+      });
+    });
+
+    updateModel();
+  </script>
 </body>
 </html>
