@@ -1,4 +1,10 @@
-````markdown
+
+The file below was made by Claude Haiku 4.5 inside Microsoft Visual Studio Code.
+
+Charlie Danoff
+Chicago 
+June 6, 2026
+
 # 202606 Spurs Prediction Model
 
 This project is an interactive statistical model that estimates the San Antonio Spurs' probability of winning the NBA Finals after dropping the first two games of the series. The model allows users to adjust the win probabilities for home and away games, providing a dynamic visualization of the Spurs' chances of making a comeback.
@@ -47,4 +53,3 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the BSD 3-Clause License. See the LICENSE file for details.
-````
