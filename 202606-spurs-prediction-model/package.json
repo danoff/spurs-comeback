@@ -1,0 +1,31 @@
+{
+  "name": "202606-spurs-prediction-model",
+  "version": "1.0.0",
+  "description": "A statistical model estimating the San Antonio Spurs' probability of winning the NBA Finals after dropping the first two games.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'Build step not defined'",
+    "test": "echo 'No tests defined'"
+  },
+  "keywords": [
+    "NBA",
+    "Spurs",
+    "prediction",
+    "model"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "live-server": "^1.2.1"
+  },
+  "devDependencies": {},
+  "homepage": "https://github.com/yourusername/202606-spurs-prediction-model#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/202606-spurs-prediction-model.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/202606-spurs-prediction-model/issues"
+  }
+}
