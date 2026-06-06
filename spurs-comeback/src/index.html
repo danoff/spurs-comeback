@@ -1,30 +1,578 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spurs Prediction Model</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spurs 0–2 Comeback · Bayesian Series Model</title>
+<style>
+  :root{
+    /* Fiesta palette */
+    --fiesta-teal: #00B2A9; --fiesta-pink: #EF426F; --fiesta-orange: #FF8200;
+    --teal:var(--fiesta-teal); --pink:var(--fiesta-pink); --orange:var(--fiesta-orange); --gold:#FFC72C;
+    --bg:#06090d; --panel:rgba(255,255,255,.045); --panel-2:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.12); --txt:#eef3f6; --muted:#9fb0bb; --silver:#c4ced4;
+    --good:#39e6a8; --bad:#ff5d6c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--txt);line-height:1.55;overflow-x:hidden;
+    background:
+      radial-gradient(1100px 680px at 82% -8%, rgba(239,66,111,.20), transparent 58%),
+      radial-gradient(1000px 640px at 8% 4%, rgba(0,178,169,.18), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(255,130,0,.12), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+  a{color:var(--teal)}
+  .citation-link{margin-left:6px;color:var(--fiesta-teal);font-weight:700;text-decoration-thickness:.08em;text-underline-offset:.18em;white-space:nowrap}
+  .glass{
+    background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 24px 60px rgba(0,0,0,.45);
+  }
+
+  /* ---------- HEADER ---------- */
+  header{padding:64px 0 30px;text-align:center}
+  .badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+    background:rgba(255,255,255,.04);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    padding:7px 15px;border-radius:999px;color:var(--silver)}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 10px var(--pink);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .badge.prior{border-color:rgba(255,199,44,.5);color:var(--gold)}
+  .badge.prior b{color:#fff}
+  h1{font-size:clamp(32px,5.6vw,58px);line-height:1.05;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(110deg,#fff 8%,var(--silver) 38%,var(--teal) 78%,var(--pink) 110%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  header p.sub{max-width:680px;margin:18px auto 0;color:var(--muted);font-size:17px}
+  .series-tag{margin-top:22px;font-weight:700;font-size:15px;color:var(--silver)}
+  .series-tag b{color:#fff}.vs{color:var(--muted);font-weight:500}
+
+  /* ---------- HERO GRID ---------- */
+  .hero{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:26px;margin-top:40px}
+  @media(max-width:880px){.hero{grid-template-columns:1fr}}
+  .card{padding:26px}
+  .gauge-card{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .ring{
+    --p:13.5; width:248px;height:248px;max-width:78vw;border-radius:50%;position:relative;
+    background:conic-gradient(from -90deg,var(--pink) 0%, var(--orange) 35%, var(--gold) 60%, var(--teal) 100%);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));
+            mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));
+    transition:none;
+  }
+  .ring-shell{position:relative;width:248px;height:248px;max-width:78vw}
+  .ring-track{position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(rgba(255,255,255,.08) 0 100%);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));
+            mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));}
+  .ring-fill{position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from -90deg,var(--pink),var(--orange),var(--gold),var(--teal) var(--deg,48deg),transparent var(--deg,48deg) 100%);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));
+            mask:radial-gradient(farthest-side,transparent calc(50% - 17px),#000 calc(50% - 16px));
+    filter:drop-shadow(0 0 12px rgba(0,178,169,.55));}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-num{font-size:54px;font-weight:bold;letter-spacing:-.03em;line-height:1;color:var(--fiesta-orange)}
+  .ring-num span{font-size:24px;color:var(--silver)}
+  .ring-ci{font-size:12.5px;color:var(--muted);margin-top:6px;min-height:18px}
+  .ring-label{margin-top:6px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .verdict{margin-top:18px;font-size:15px;font-weight:600;color:var(--silver);min-height:24px}
+  .verdict.hot{color:var(--good)}.verdict.cold{color:var(--bad)}
+  .split{display:flex;gap:24px;margin-top:16px}
+  .split .k{font-size:20px;font-weight:bold;color:var(--fiesta-orange)}
+  .split .l{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- LEVERS ---------- */
+  .ctrl h3{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+  .ctrl p.note{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+  .lever{margin:20px 0}
+  .lever-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px}
+  .lever-name{font-weight:700;font-size:14.5px}
+  .lever-name small{display:block;color:var(--muted);font-weight:400;font-size:12px;letter-spacing:0}
+  .lever-val{font-weight:800;font-size:17px;color:var(--gold);white-space:nowrap}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;
+    background:linear-gradient(90deg,var(--teal) 0%,var(--teal) var(--p,50%),rgba(255,255,255,.1) var(--p,50%));
+    outline:none;cursor:pointer}
+  input[type=range]:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:21px;height:21px;border-radius:50%;
+    background:var(--fiesta-teal);border:3px solid var(--fiesta-teal);box-shadow:0 0 12px rgba(0,178,169,.8);cursor:grab}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--fiesta-teal);
+    border:3px solid var(--fiesta-teal);box-shadow:0 0 12px rgba(0,178,169,.8);cursor:grab}
+  input[type="range"]::-webkit-slider-thumb, input[type="range"]::-moz-range-thumb { background: var(--fiesta-teal); }
+  .formula{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    margin-top:18px;font-family:"Cascadia Code",Consolas,monospace;color:var(--teal);font-size:12.8px;overflow-x:auto}
+  .formula b{color:var(--gold)}
+
+  /* ---------- ENGINE SWITCH ---------- */
+  .engine{display:flex;gap:8px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;padding:5px;margin:6px 0 0}
+  .engine button{flex:1;border:none;background:transparent;color:var(--silver);font-weight:700;font-size:13px;
+    padding:9px;border-radius:8px;cursor:pointer;transition:.18s}
+  .engine button.active{background:linear-gradient(120deg,var(--pink),var(--orange));color:#0a0a0a}
+  .mc-panel{margin-top:16px;display:none}
+  .mc-panel.show{display:block}
+  .mc-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+  .mc-field{flex:1;min-width:120px}
+  .mc-field label{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .mc-field input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:9px;
+    color:#fff;padding:9px 11px;font-size:14px;font-family:inherit}
+  .mc-run{background:linear-gradient(120deg,var(--teal),var(--gold));color:#06090d;border:none;font-weight:800;
+    padding:11px 20px;border-radius:10px;cursor:pointer;font-size:14px;align-self:flex-end}
+  .mc-run[aria-busy="true"]{opacity:.6;cursor:progress}
+  .mc-status{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:18px}
+  canvas#conv{width:100%;height:170px;margin-top:14px;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;display:block}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:46px 0}
+  .sec-head{text-align:center;margin-bottom:28px}
+  .sec-head h2{font-size:clamp(23px,4vw,33px);font-weight:800;letter-spacing:-.02em}
+  .sec-head p{color:var(--muted);margin-top:8px;font-size:15px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{padding:22px;text-align:center;transition:.2s}
+  .stat:hover{transform:translateY(-4px)}
+  .stat .big{font-size:32px;font-weight:bold;color:var(--fiesta-orange)}
+  .stat .cap{font-size:13px;color:var(--muted);margin-top:6px}
+  .road{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  @media(max-width:760px){.road{grid-template-columns:repeat(2,1fr)}}
+  .game{padding:18px 14px;text-align:center;position:relative;overflow:hidden}
+  .game .gno{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .game .loc{font-weight:800;font-size:15px;margin:6px 0 0}
+  .game .loc.home{color:var(--good)}.game .loc.road{color:var(--silver)}
+  .game .tag{font-size:11px;color:var(--muted);margin-top:2px}
+  .game .odds{font-size:25px;font-weight:bold;color:var(--fiesta-orange);margin-top:8px}
+  .game .ub{position:absolute;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--pink),var(--teal))}
+  .timeline{position:relative;max-width:760px;margin:0 auto;padding-left:30px}
+  .timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--teal),var(--pink))}
+  .tl{position:relative;margin-bottom:22px}
+  .tl::before{content:"";position:absolute;left:-30px;top:5px;width:16px;height:16px;border-radius:50%;
+    background:var(--good);box-shadow:0 0 12px var(--good);border:3px solid var(--bg)}
+  .tl .yr{font-weight:800;color:#fff}.tl .ev{color:var(--silver);font-size:14.5px}
+  .method{padding:28px}
+  .method h3{font-size:18px;margin-bottom:12px}
+  .method p,.method li{color:var(--silver);font-size:14.5px}
+  .method ul{margin:10px 0 10px 20px}
+  details{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+  summary{cursor:pointer;font-weight:700;color:var(--silver)}
+  .demo-tag{display:inline-block;background:rgba(255,93,108,.15);border:1px solid var(--bad);color:var(--bad);
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:6px;margin-bottom:10px}
+  .disclaimer{font-size:12.5px;color:var(--muted);margin-top:14px;font-style:italic;border-top:1px solid var(--line);padding-top:14px}
+  footer{text-align:center;padding:36px 0 60px;color:var(--muted);font-size:13px}
+  footer em{display:inline-block;color:var(--silver);font-style:italic;font-size:14px;line-height:1.7}
+  .reveal{opacity:0;transform:translateY(22px);transition:.7s cubic-bezier(.16,1,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
 </head>
 <body>
-    <header>
-        <h1>San Antonio Spurs Prediction Model</h1>
-        <p>Estimate the Spurs' chances of winning the NBA Finals.</p>
-    </header>
-    <main>
-        <section id="model">
-            <h2>Interactive Model</h2>
-            <div id="controls">
-                <!-- Controls for the prediction model will go here -->
+
+<header>
+  <div class="wrap">
+    <div class="badges">
+      <span class="badge"><span class="dot"></span> Live Series Model · Post Game 2</span>
+      <span class="badge prior">Historical Prior <b>13.5%</b> · 5 of 37 Finals comebacks
+        <a href="https://www.basketball-reference.com/playoffs/" target="_blank" rel="noopener noreferrer" class="citation-link">[Source ↗]</a></span>
+    </div>
+    <h1>Bayesian Comeback Model:<br>Spurs Down 0–2 in the Finals</h1>
+    <p class="sub">A cited historical prior, a verified best-of-7 enumeration engine, and an optional Monte&nbsp;Carlo
+       posterior with uncertainty — driven by <em>Spurs-controlled process levers</em>, not made-up odds.</p>
+    <div class="series-tag"><b>San Antonio Spurs</b> <span class="vs">trail</span> <b>New York Knicks</b>
+      <span class="vs">·</span> Series <b>0–2</b> <span class="vs">·</span> Knicks hold home court</div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+
+      <!-- GAUGE -->
+      <div class="card glass gauge-card">
+        <div class="ring-shell" id="ring" role="img" aria-label="Series win probability gauge">
+          <div class="ring-track"></div>
+          <div class="ring-fill" id="ringFill"></div>
+          <div class="ring-center">
+            <div class="ring-num"><span id="pct">13.5</span><span>%</span></div>
+            <div class="ring-ci" id="ci"></div>
+            <div class="ring-label">Series Win Prob.</div>
+          </div>
+        </div>
+        <div class="verdict" id="verdict">Calibrated to the historical base rate.</div>
+        <div class="split">
+          <div><div class="k" id="oddsAm">—</div><div class="l">American Odds</div></div>
+          <div><div class="k" id="oddsX">—</div><div class="l">Implied "X-to-1"</div></div>
+        </div>
+      </div>
+
+      <!-- LEVERS + ENGINE -->
+      <div class="card glass ctrl">
+        <h3>Spurs Process Levers</h3>
+        <p class="note">Each lever is something San Antonio can actually influence, in real units. Every unit maps to a
+           fixed log-odds shift on the prior, applied to all remaining games.</p>
+
+        <div class="lever">
+          <div class="lever-top">
+            <div class="lever-name">Defensive Rating Edge
+              <small>fewer pts allowed per 100 poss. vs Knicks · β=0.09</small></div>
+            <div class="lever-val"><span id="defV">0</span> pts</div>
+          </div>
+          <input type="range" id="def" min="0" max="10" step="0.5" value="0"
+            aria-label="Defensive rating edge in points per 100 possessions"
+            aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 points per 100 possessions">
+        </div>
+
+        <div class="lever">
+          <div class="lever-top">
+            <div class="lever-name">Wembanyama Usage Δ
+              <small>usage-rate increase, percentage points · β=0.05</small></div>
+            <div class="lever-val">+<span id="usgV">0</span> pp</div>
+          </div>
+          <input type="range" id="usg" min="0" max="10" step="0.5" value="0"
+            aria-label="Wembanyama usage rate increase in percentage points"
+            aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-valuetext="0 percentage points">
+        </div>
+
+        <div class="lever">
+          <div class="lever-top">
+            <div class="lever-name">Three-Point Shooting Δ
+              <small>3P% vs series baseline, percentage points · β=0.07</small></div>
+            <div class="lever-val"><span id="shotV">0</span> pp</div>
+          </div>
+          <input type="range" id="shot" min="-5" max="8" step="0.5" value="0"
+            aria-label="Three point percentage change in percentage points"
+            aria-valuemin="-5" aria-valuemax="8" aria-valuenow="0" aria-valuetext="0 percentage points">
+        </div>
+
+        <div class="formula" id="formula"></div>
+
+        <h3 style="margin-top:22px">Inference Engine</h3>
+        <div class="engine" role="tablist" aria-label="Inference engine">
+          <button id="eDP" class="active" role="tab" aria-selected="true">Exact Enumeration (DP)</button>
+          <button id="eMC" role="tab" aria-selected="false">Monte Carlo + Beta Prior</button>
+        </div>
+
+        <div class="mc-panel" id="mcPanel">
+          <div class="mc-row">
+            <div class="mc-field">
+              <label for="trials">Trials</label>
+              <input type="number" id="trials" value="40000" min="1000" max="200000" step="1000">
             </div>
-            <div id="results">
-                <!-- Results of the prediction model will be displayed here -->
+            <div class="mc-field">
+              <label for="rho">Game Corr. ρ</label>
+              <input type="number" id="rho" value="0.15" min="0" max="0.6" step="0.05">
             </div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2026 Spurs Prediction Model</p>
-    </footer>
-    <script src="app.js"></script>
+            <div class="mc-field">
+              <label for="seed">RNG Seed</label>
+              <input type="number" id="seed" value="12345" min="1" step="1">
+            </div>
+            <button class="mc-run" id="run" aria-busy="false">Run Simulation</button>
+          </div>
+          <div class="mc-status" id="mcStatus" role="status" aria-live="polite">
+            Beta(5.5, 34.5) prior · posterior mean ± 95% credible interval.</div>
+          <canvas id="conv" width="600" height="170">Convergence chart of the running posterior mean versus trial count.</canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<!-- HISTORY -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal"><h2>The Weight of History</h2>
+      <p>The numbers behind the locked prior.</p></div>
+    <div class="stats reveal">
+      <div class="stat glass"><div class="big">13.5%</div><div class="cap">Finals comeback rate from 0–2 (5 of 37)</div></div>
+      <div class="stat glass"><div class="big">7.3%</div><div class="cap">All-playoffs 0–2 comeback rate (34 of 463)</div></div>
+      <div class="stat glass"><div class="big">5</div><div class="cap">Teams ever to win the Finals after 0–2</div></div>
+      <div class="stat glass"><div class="big">0</div><div class="cap">Finals teams to recover after losing first two <b>at home</b></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ROAD AHEAD -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal"><h2>The Road Ahead</h2>
+      <p>2–2–1–1–1 format · Knicks seeded higher. Per-game win odds update live with your levers.</p></div>
+    <div class="road reveal" id="roadGrid"></div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal"><h2>The Few Who Did It</h2>
+      <p>Every team to erase an 0–2 Finals deficit.</p></div>
+    <div class="timeline reveal">
+      <div class="tl"><div class="yr">1969 · Boston Celtics</div><div class="ev">Bill Russell's last ride: down 0–2 to the Lakers, won it in Game 7.</div></div>
+      <div class="tl"><div class="yr">1977 · Portland Trail Blazers</div><div class="ev">Bill Walton's Blazers reeled off four straight after dropping the opener pair.</div></div>
+      <div class="tl"><div class="yr">2006 · Miami Heat</div><div class="ev">Dwyane Wade caught fire; Miami answered with four in a row.</div></div>
+      <div class="tl"><div class="yr">2016 · Cleveland Cavaliers</div><div class="ev">LeBron's Cavs — the only club to escape both an 0–2 and a 3–1 Finals hole.</div></div>
+      <div class="tl"><div class="yr">2021 · Milwaukee Bucks</div><div class="ev">Giannis' 50-point close-out capped the comeback over the Suns.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section>
+  <div class="wrap">
+    <div class="method glass reveal">
+      <h3>How the Model Works</h3>
+      <p>The Spurs need <b>4 more wins</b> before the Knicks reach <b>2</b>. Per-game win probability comes from a
+         log-odds model anchored to the historical prior; the series probability is then computed two ways:</p>
+      <ul>
+        <li><b>Exact Enumeration (default):</b> sums all 2<sup>5</sup>=32 win/loss paths through Games&nbsp;3–7,
+            stopping each path the instant a team clinches. Instant, deterministic, zero-dependency.</li>
+        <li><b>Monte Carlo + Beta prior:</b> simulates the series with a Gaussian-copula correlation (ρ) between games,
+            then forms a <b>Beta(5.5, 34.5)</b> posterior — a real Bayesian shrinkage toward the 13.5% prior that also
+            yields a 95% credible interval and a live convergence chart. Seed is exposed for reproducibility.</li>
+      </ul>
+      <p style="margin-top:10px">Levers are <b>Spurs-controlled process variables with units</b>, each mapped to a fixed
+         log-odds shift: <code>logit(p_game) = logit(prior) + Σ β·lever</code>. With every lever at zero the model returns
+         the historical base rate by construction.</p>
+      <details>
+        <summary>A note on the data shown</summary>
+        <div style="margin-top:10px">
+          <span class="demo-tag">Demo data — not real</span>
+          <p>Lever β-weights and the home-court term are illustrative calibrations, not values fit to a play-by-play
+             dataset. The historical anchors (5/37 Finals, 34/463 all-playoffs) reflect publicly reported NBA records.</p>
+        </div>
+      </details>
+      <p class="disclaimer">For visualization and scenario analysis only. This is not betting advice and does not use live sportsbook lines.</p>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><em>Sovereign single-file artifact · No external libraries<br>For visualization and scenario analysis only. This is not betting advice and does not use live sportsbook lines.</em></div></footer>
+
+<script>
+"use strict";
+/* ================= MODEL CONSTANTS (calibrated) ================= */
+const MU = -0.4197;          // neutral log-odds -> 13.5% via DP
+const HCA = 0.405;           // home-court advantage in log-odds
+const SCHED = [true,true,false,true,false]; // G3,4 home · G5 road · G6 home · G7 road
+const PRIOR_A = 5.5, PRIOR_B = 34.5;        // Beta prior (mean 13.75%)
+const LEVERS = {
+  def:  {beta:0.09, unit:"points per 100 possessions"},
+  usg:  {beta:0.05, unit:"percentage points usage"},
+  shot: {beta:0.07, unit:"percentage points (3P%)"}
+};
+const sig = x => 1/(1+Math.exp(-x));
+
+function leverShift(){
+  return LEVERS.def.beta*(+def.value) + LEVERS.usg.beta*(+usg.value) + LEVERS.shot.beta*(+shot.value);
+}
+function gameProbs(){
+  const s = leverShift();
+  return { ph: sig(MU+HCA+s), pr: sig(MU-HCA+s) };
+}
+
+/* ----- Exact enumeration from 0-2 ----- */
+function seriesProbDP(ph,pr){
+  let total=0;
+  for(let m=0;m<32;m++){
+    let sp=0,kn=0,prob=1,decided=false,win=false;
+    for(let i=0;i<5;i++){
+      const p = SCHED[i]?ph:pr;
+      const w=(m>>i)&1;
+      prob *= w?p:(1-p);
+      if(w)sp++;else kn++;
+      if(sp===4){decided=true;win=true;break;}
+      if(kn===2){decided=true;win=false;break;}
+    }
+    if(decided&&win) total+=prob;
+  }
+  return total;
+}
+
+/* ----- Monte Carlo: Gaussian copula + Beta posterior ----- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function normInv(p){
+  const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.3577518672690,-30.66479806614716,2.506628277459239];
+  const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+  const c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+  const d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+  const pl=0.02425;let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=1-pl){q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+const clip = u => Math.min(Math.max(u,1e-9),1-1e-9);
+
+/* ================= DOM ================= */
+const $=id=>document.getElementById(id);
+const def=$("def"),usg=$("usg"),shot=$("shot");
+const pct=$("pct"),ci=$("ci"),ringFill=$("ringFill"),ring=$("ring");
+const verdict=$("verdict"),oddsAm=$("oddsAm"),oddsX=$("oddsX");
+const roadGrid=$("roadGrid"),formula=$("formula");
+let engine="dp";
+
+/* gauge animation */
+let displayed=0,target=0.135,raf=null;
+function setRing(p){
+  ringFill.style.setProperty("--deg",(p*360).toFixed(2)+"deg");
+  ring.setAttribute("aria-label","Series win probability gauge, "+(p*100).toFixed(1)+" percent");
+}
+function animateTo(p){
+  target=p; if(raf)cancelAnimationFrame(raf);
+  (function step(){
+    displayed += (target-displayed)*0.14;
+    if(Math.abs(target-displayed)<0.0006) displayed=target;
+    pct.textContent=(displayed*100).toFixed(1);
+    setRing(displayed);
+    if(displayed!==target) raf=requestAnimationFrame(step);
+  })();
+}
+function americanOdds(p){if(p<=0)return"+∞";if(p>=1)return"—";
+  return p>=0.5?Math.round(-100*p/(1-p)).toString():"+"+Math.round(100*(1-p)/p);}
+function xToOne(p){return p<=0?"∞-to-1":(((1-p)/p)).toFixed(1)+"-to-1";}
+function verdictText(p){
+  verdict.classList.remove("hot","cold");
+  if(p<0.08){verdict.classList.add("cold");return"Historic odds — a true miracle run.";}
+  if(p<0.18){verdict.classList.add("cold");return"Steep climb, but it has been done.";}
+  if(p<0.32)return"Long shot — yet very much alive.";
+  if(p<0.45)return"Live underdog; this series isn't over.";
+  if(p<0.55){verdict.classList.add("hot");return"Essentially a coin flip from here.";}
+  if(p<0.7){verdict.classList.add("hot");return"Momentum says believe.";}
+  verdict.classList.add("hot");return"Sound the alarm — comeback favored!";
+}
+function renderRoad(ph,pr){
+  const games=[{g:3,h:1},{g:4,h:1},{g:5,h:0},{g:6,h:1},{g:7,h:0}];
+  roadGrid.innerHTML=games.map(s=>{const p=s.h?ph:pr,pc=Math.round(p*100);return`
+    <div class="game glass"><div class="gno">Game ${s.g}</div>
+      <div class="loc ${s.h?'home':'road'}">${s.h?'San Antonio':'New York'}</div>
+      <div class="tag">${s.h?'Home':'Road'}</div>
+      <div class="odds">${pc}%</div><div class="tag">Spurs win</div>
+      <div class="ub" style="width:${pc}%"></div></div>`;}).join("");
+}
+function updateFormula(){
+  const s=leverShift();
+  formula.innerHTML=`logit(p<sub>game</sub>) = ${MU.toFixed(3)} ${'±'} ${HCA} (home/road) + <b>${s>=0?'+':''}${s.toFixed(3)}</b> (levers)<br>`+
+    `Σ β·lever = 0.09·${(+def.value)} + 0.05·${(+usg.value)} + 0.07·${(+shot.value)} = <b>${s.toFixed(3)}</b>`;
+}
+function syncAria(el,suffix){
+  el.setAttribute("aria-valuenow",el.value);
+  el.setAttribute("aria-valuetext",(el.value>0&&el.id!=="shot"?"+":"")+el.value+" "+suffix);
+}
+
+/* main recompute (DP path) */
+function recomputeDP(){
+  const {ph,pr}=gameProbs();
+  const p=seriesProbDP(ph,pr);
+  animateTo(p); ci.textContent="exact enumeration";
+  verdict.textContent=verdictText(p);
+  oddsAm.textContent=americanOdds(p); oddsX.textContent=xToOne(p);
+  renderRoad(ph,pr);
+}
+function refreshLeverUI(){
+  $("defV").textContent=(+def.value); $("usgV").textContent=(+usg.value); $("shotV").textContent=(+shot.value);
+  def.style.setProperty("--p",((def.value-0)/10*100)+"%");
+  usg.style.setProperty("--p",((usg.value-0)/10*100)+"%");
+  shot.style.setProperty("--p",((shot.value+5)/13*100)+"%");
+  syncAria(def,"points/100"); syncAria(usg,"pp usage"); syncAria(shot,"pp 3P%");
+  updateFormula();
+}
+
+/* debounce */
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+const onLeverInput=debounce(()=>{
+  refreshLeverUI();
+  if(engine==="dp") recomputeDP();
+},120);
+[def,usg,shot].forEach(el=>el.addEventListener("input",onLeverInput));
+
+/* ---------- engine switch ---------- */
+$("eDP").addEventListener("click",()=>{
+  engine="dp"; $("eDP").classList.add("active");$("eMC").classList.remove("active");
+  $("eDP").setAttribute("aria-selected","true");$("eMC").setAttribute("aria-selected","false");
+  $("mcPanel").classList.remove("show"); recomputeDP();
+});
+$("eMC").addEventListener("click",()=>{
+  engine="mc"; $("eMC").classList.add("active");$("eDP").classList.remove("active");
+  $("eMC").setAttribute("aria-selected","true");$("eDP").setAttribute("aria-selected","false");
+  $("mcPanel").classList.add("show");
+});
+
+/* ---------- Monte Carlo run (batched, non-blocking) ---------- */
+const conv=$("conv"),cx=conv.getContext("2d");
+function drawConv(history,N){
+  const W=conv.width,H=conv.height,padL=44,padB=22,padT=12,padR=10;
+  cx.clearRect(0,0,W,H);
+  // axes
+  cx.strokeStyle="rgba(255,255,255,.15)";cx.lineWidth=1;
+  cx.beginPath();cx.moveTo(padL,padT);cx.lineTo(padL,H-padB);cx.lineTo(W-padR,H-padB);cx.stroke();
+  const ymax=Math.max(0.3, Math.ceil((Math.max(...history.map(h=>h.v),0.135)+0.05)*10)/10);
+  const X=i=>padL+(i/(history.length-1||1))*(W-padL-padR);
+  const Y=v=>H-padB-(v/ymax)*(H-padT-padB);
+  // prior line
+  cx.strokeStyle="rgba(255,199,44,.6)";cx.setLineDash([5,4]);
+  cx.beginPath();cx.moveTo(padL,Y(0.135));cx.lineTo(W-padR,Y(0.135));cx.stroke();cx.setLineDash([]);
+  cx.fillStyle="rgba(255,199,44,.8)";cx.font="10px sans-serif";cx.fillText("prior 13.5%",padL+4,Y(0.135)-4);
+  // posterior line
+  cx.strokeStyle="#00B2A9";cx.lineWidth=2;cx.beginPath();
+  history.forEach((h,i)=>{const x=X(i),y=Y(h.v);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.stroke();
+  // y labels
+  cx.fillStyle="rgba(255,255,255,.5)";cx.font="10px sans-serif";
+  cx.fillText((ymax*100).toFixed(0)+"%",6,Y(ymax)+3);cx.fillText("0%",6,Y(0)+3);
+  cx.fillText(N.toLocaleString()+" trials",W-90,H-6);
+}
+let running=false;
+$("run").addEventListener("click",()=>{
+  if(running)return; running=true;
+  const btn=$("run"); btn.setAttribute("aria-busy","true"); btn.textContent="Running…";
+  const {ph,pr}=gameProbs();
+  const N=Math.min(200000,Math.max(1000,parseInt($("trials").value)||40000));
+  const rho=Math.min(0.6,Math.max(0,parseFloat($("rho").value)||0));
+  const seed=Math.max(1,parseInt($("seed").value)||1);
+  const rng=mulberry32(seed), sr=Math.sqrt(rho), s1=Math.sqrt(1-rho);
+  const thHome=normInv(ph), thRoad=normInv(pr);
+  let done=0,succ=0; const history=[]; const BATCH=4000;
+  function batch(){
+    const end=Math.min(done+BATCH,N);
+    for(;done<end;done++){
+      const z0=normInv(clip(rng())); let sp=0,kn=0;
+      for(let i=0;i<5;i++){
+        const zi=normInv(clip(rng())); const corr=sr*z0+s1*zi;
+        if(corr < (SCHED[i]?thHome:thRoad)) sp++; else kn++;
+        if(sp===4)break; if(kn===2)break;
+      }
+      if(sp===4)succ++;
+    }
+    const postMean=(PRIOR_A+succ)/(PRIOR_A+PRIOR_B+done);
+    history.push({v:postMean});
+    drawConv(history,done);
+    pct.textContent=(postMean*100).toFixed(1); setRing(postMean);
+    if(done<N){ $("mcStatus").textContent=`Simulating… ${done.toLocaleString()} / ${N.toLocaleString()} trials`;
+      requestAnimationFrame(batch);
+    } else {
+      const a=PRIOR_A+succ,b=PRIOR_B+(N-succ);
+      const mean=a/(a+b), v=a*b/((a+b)*(a+b)*(a+b+1)), sd=Math.sqrt(v);
+      const lo=Math.max(0,mean-1.96*sd), hi=Math.min(1,mean+1.96*sd);
+      animateTo(mean); verdict.textContent=verdictText(mean);
+      oddsAm.textContent=americanOdds(mean); oddsX.textContent=xToOne(mean);
+      ci.textContent=`95% CI ${(lo*100).toFixed(1)}–${(hi*100).toFixed(1)}%`;
+      $("mcStatus").textContent=`Done. ${succ.toLocaleString()} comebacks in ${N.toLocaleString()} trials · raw ${(succ/N*100).toFixed(1)}% · Beta posterior ${(mean*100).toFixed(1)}% (ρ=${rho}, seed=${seed}).`;
+      renderRoad(ph,pr);
+      btn.setAttribute("aria-busy","false"); btn.textContent="Run Simulation"; running=false;
+    }
+  }
+  batch();
+});
+
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in");}),{threshold:.15});
+document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+
+/* init */
+refreshLeverUI(); recomputeDP();
+setTimeout(()=>animateTo(seriesProbDP(gameProbs().ph,gameProbs().pr)),250);
+</script>
 </body>
 </html>
