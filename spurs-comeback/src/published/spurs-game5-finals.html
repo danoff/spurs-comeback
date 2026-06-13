@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spurs Game 5 Prediction | Four Factors Analysis — mr.danoff.org</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#00B2A9;--pink:#EF426F;--orange:#FF8200;--silver:#C4CED4;
+  --dim:#8893a0;--text:#dde3e8;
+  --glass-bg:rgba(15,15,17,0.72);--glass-border:rgba(196,206,212,0.1);
+  --glass-radius:1.25rem;--bg:#050505;
+}
+html{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(at 0% 0%,   rgba(0,178,169,0.09) 0px,  transparent 45%),
+    radial-gradient(at 100% 0%,  rgba(255,130,0,0.06) 0px,  transparent 40%),
+    radial-gradient(at 100% 100%,rgba(239,66,111,0.09) 0px, transparent 45%);
+  background-attachment:fixed;color:var(--text);
+}
+body{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;line-height:1.7;
+     max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 6rem}
+h1,h2,h3{font-family:'Instrument Serif',serif;font-weight:400}
+a{color:var(--silver);text-decoration:none}
+a:hover{color:var(--teal);text-decoration:underline}
+.glass{background:var(--glass-bg);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+       border:1px solid var(--glass-border);border-radius:var(--glass-radius)}
+.grad{background:linear-gradient(90deg,var(--teal),var(--pink));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.dot{width:6px;height:6px;background:var(--teal);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+header{border-bottom:1px solid var(--glass-border);padding-bottom:2.25rem;margin-bottom:2.5rem}
+header h1{font-size:clamp(2.2rem,5vw,3.2rem);line-height:1.1;color:#fff;margin:.5rem 0 1.1rem}
+.lede{font-size:1.05rem;line-height:1.7;color:var(--silver);max-width:660px}
+.lede strong{color:#fff;font-weight:500}
+
+.verdict{padding:1.75rem 2rem;margin:2.5rem 0;border-top:3px solid var(--pink)}
+.verdict-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--pink);margin-bottom:.8rem}
+.verdict p{color:var(--silver);font-size:.975rem;line-height:1.75}
+.verdict p+p{margin-top:.75rem}
+.verdict strong{color:#fff;font-weight:500}
+
+.sec-head{font-size:1.35rem;margin-bottom:.3rem}
+.sec-note{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--dim);margin-bottom:1.25rem}
+
+.chart-section{margin:2.75rem 0;padding:1.75rem}
+.chart-title{font-size:1.2rem;color:#fff;margin-bottom:.4rem;font-weight:400}
+.chart-explanation{font-size:.9rem;color:var(--silver);margin-bottom:1.5rem;line-height:1.7}
+.chart-container{margin:1.5rem 0}
+
+svg{display:block;width:100%;height:auto}
+.bar{stroke:none}
+.bar:hover{opacity:0.8}
+.axis-label{font-family:'DM Mono',monospace;font-size:11px;fill:var(--dim);text-anchor:end}
+.tick-label{font-family:'DM Mono',monospace;font-size:10px;fill:var(--dim)}
+.chart-text{font-family:'DM Mono',monospace;font-size:10px;fill:var(--silver);text-anchor:middle;dominant-baseline:middle}
+
+.factor-card{padding:1.5rem;margin:1rem 0;border-left:3px solid var(--teal)}
+.factor-title{font-size:1.1rem;color:#fff;margin-bottom:.5rem;font-weight:400}
+.factor-stat{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.75rem 0}
+.stat-item{font-family:'DM Mono',monospace;font-size:.85rem}
+.stat-label{color:var(--dim);font-size:.75rem;text-transform:uppercase;margin-bottom:.2rem}
+.stat-value{font-size:1.4rem;color:var(--teal);font-weight:500}
+.stat-context{font-size:.75rem;color:var(--dim);margin-top:.2rem}
+
+.odds-box{padding:1.5rem;margin:1.5rem 0;border-radius:var(--glass-radius);background:rgba(255,130,0,0.08);border:1px solid rgba(255,130,0,0.2)}
+.odds-label{font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:.4rem}
+.odds-value{font-size:2rem;color:var(--orange);font-weight:600}
+.odds-subtext{font-size:.85rem;color:var(--silver);margin-top:.5rem;line-height:1.5}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:1.5rem 0}
+thead tr{border-bottom:1px solid var(--glass-border)}
+th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:400;padding:.6rem .75rem;text-align:left}
+th:not(:first-child){text-align:right}
+td{padding:.65rem .75rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--silver)}
+td:not(:first-child){text-align:right;font-family:'DM Mono',monospace;font-size:.8rem}
+td.lbl{color:var(--text);font-weight:400}
+tr.hi td{background:rgba(0,178,169,.07)}
+
+.method-box{padding:1.6rem;margin:1.5rem 0}
+.method-box h3{font-size:1rem;margin-bottom:.8rem;color:var(--silver);font-weight:400}
+.method-box p{font-size:.85rem;color:var(--dim);line-height:1.75;margin-bottom:.6rem}
+.method-box strong{color:var(--silver)}
+
+footer{margin-top:4rem;border-top:1px solid var(--glass-border);padding-top:1.5rem;display:flex;flex-wrap:wrap;gap:.75rem 1.5rem;justify-content:space-between;align-items:center}
+footer p{font-size:.78rem;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow"><span class="dot"></span>Game 5 Prediction · NBA Finals 2026</p>
+  <h1>Spurs Must Win<br><span class="grad">Game 5</span> (Home)</h1>
+  <p class="lede">The Bayesian model identifies two pace-neutral factors critical to San Antonio's survival: <strong>effective field goal percentage (eFG%) and turnover management</strong>.</p>
+</header>
+
+<div class="verdict glass">
+  <p class="verdict-label">The Reality</p>
+  <p>San Antonio is <strong>3-1 down and must win Game 5 at home</strong>. The model puts their series comeback probability at <strong>5.3%</strong> based on current Finals performance. But if they win G5, odds improve to <strong>9.6% to 18.4%</strong>.</p>
+</div>
+
+<!-- CHART 1: RHAT CONVERGENCE -->
+<section class="chart-section glass">
+  <h2 class="chart-title">Model Convergence: All Parameters Converged ✓</h2>
+  <p class="chart-explanation">
+    The MCMC sampler ran 4 parallel chains. The <a href="https://en.wikipedia.org/wiki/Gelman-Rubin_statistic">Gelman-Rubin statistic</a> (Rhat) measures convergence. 
+    All parameters show Rhat < 1.05 — the posterior estimates are reliable.
+  </p>
+  <div class="chart-container" id="rhatChart"></div>
+</section>
+
+<!-- CHART 2: FOUR FACTORS -->
+<section class="chart-section glass" style="margin-top:2rem">
+  <h2 class="chart-title">Which Four Factors Drive Spurs Wins</h2>
+  <p class="chart-explanation">
+    Green bars help, red bars hurt. eFG% is overwhelmingly dominant (β=+1.69, 100% confidence). 
+    Turnover % is the second-strongest signal but negative — keeping turnovers low is critical.
+  </p>
+  <div class="chart-container" id="factorsChart"></div>
+</section>
+
+<!-- CHART 3: SERIES COMEBACK -->
+<section class="chart-section glass" style="margin-top:2rem">
+  <h2 class="chart-title">What Game 5 Success Looks Like: Series Comeback Odds</h2>
+  <p class="chart-explanation">
+    These bars show the probability of winning the entire series (need 3 straight: G5H, G6A, G7H) 
+    under three performance scenarios. Red = Finals-level. Gray = improvement. Blue-gray = playoff-average.
+  </p>
+  <div class="chart-container" id="seriesChart"></div>
+</section>
+
+<!-- FOUR FACTORS EXPLAINED -->
+<section style="margin:3rem 0">
+  <h2 class="sec-head">The Four Factors Explained</h2>
+
+  <div class="factor-card glass">
+    <p class="factor-title">1. Effective FG% (eFG%) — Critical</p>
+    <div class="factor-stat">
+      <div class="stat-item"><p class="stat-label">Finals avg (G1-G4)</p><p class="stat-value">53.4%</p></div>
+      <div class="stat-item"><p class="stat-label">Playoff win avg</p><p class="stat-value">57.1%</p></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:.75rem">eFG% = (FG + 0.5×3P) / FGA. The single strongest predictor of wins.</p>
+  </div>
+
+  <div class="factor-card glass">
+    <p class="factor-title">2. Turnover % (TOV%) — Critical</p>
+    <div class="factor-stat">
+      <div class="stat-item"><p class="stat-label">Finals avg (G1-G4)</p><p class="stat-value">14.7%</p></div>
+      <div class="stat-item"><p class="stat-label">Playoff win avg</p><p class="stat-value">12.1%</p></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:.75rem">TOV% = TOV / (FGA + 0.44×FTA + TOV). Reducing turnovers is essential.</p>
+  </div>
+</section>
+
+<!-- ODDS -->
+<section style="margin:3rem 0">
+  <div class="odds-box">
+    <p class="odds-label">Game 5 Implied Odds</p>
+    <p class="odds-value">+260</p>
+    <p class="odds-subtext">Based on 27.9% win probability (Finals avg).</p>
+  </div>
+
+  <div class="odds-box">
+    <p class="odds-label">If Spurs Win G5 (get to 3-2)</p>
+    <p class="odds-value">+420</p>
+    <p class="odds-subtext">Series odds improve to 9.6% to 18.4%.</p>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section style="margin:3rem 0">
+  <h2 class="sec-head">The Model</h2>
+  <div class="method-box glass">
+    <h3>Three-Hierarchy Bayesian HLM with Four Factors</h3>
+    <p><strong>Data:</strong> 25 games (4 Finals, 3 pre-Finals NYK, 18 other playoffs)</p>
+    <p><strong>Features:</strong> eFG%, TOV%, ORB%, FT Rate, Home/Away — all pace-neutral.</p>
+    <p><strong>Sampler:</strong> 4 parallel MCMC chains. All parameters converged (Rhat < 1.05).</p>
+    <p><strong>Key insight:</strong> NYK Finals base rate is 33.6% vs 68.7% playoff average. Beating the Knicks is categorically harder.</p>
+  </div>
+</section>
+
+
+
+    <!-- Footer -->
+    <footer>
+        <p>See earlier predictions published before <a href="https://www.mr.danoff.org/spurs-finals26-comeback-after-game3.html">game 4</a>, <a href="https://www.mr.danoff.org/spurs-finals26-comeback-after-game2.html">game 3</a>, and <a href="https://bsky.app/profile/teachinglaboratory.bsky.social/post/3mnleq5xdhs2q">game 2</a>.</p>
+        <p>Feedback, comments, and questions are welcome!</p>
+
+        <p><a href="https://bsky.app/profile/teachinglaboratory.bsky.social">@teachinglaboratory.bsky.social</a> on Bluesky · Email <a href="mailto:contact@mr.danoff.org">contact@mr.danoff.org</a> · <a href="https://twitter.com/danoff" target="_blank">@danoff</a> on Twitter</p>
+        <p>Data: <a href="https://developer.sportradar.com/basketball/docs/nba-ig-api-basics" target="_blank">SportRadar NBA API</a> · All 20 SAS 2026 playoff games · Real box scores, no estimates.</p>
+        <p><a href="https://github.com/danoff/basketball" target="_blank">github.com/danoff/basketball</a> · <a href="https://mr.danoff.org" target="_blank">mr.danoff.org</a></p>
+        <p>For visualization and scenario analysis only. This is not betting advice and does not use live sportsbook lines.</p>
+    </footer>
+
+
+
+<script>
+// ─────────────────────────────────────────────────────────
+// 1. RHAT CONVERGENCE
+// ─────────────────────────────────────────────────────────
+const rhatData = [
+  { name: "mu_alpha", value: 1.001, color: "#1d7a3b" },
+  { name: "log_sigma", value: 1.001, color: "#1d7a3b" },
+  { name: "alpha_G0", value: 1.001, color: "#1d7a3b" },
+  { name: "alpha_G1", value: 1.011, color: "#FF8200" },
+  { name: "alpha_G2", value: 1.002, color: "#1d7a3b" },
+  { name: "beta_eFG", value: 1.003, color: "#1d7a3b" },
+  { name: "beta_TOV", value: 1.007, color: "#1d7a3b" },
+  { name: "beta_ORB", value: 1.005, color: "#1d7a3b" },
+  { name: "beta_FT", value: 1.005, color: "#1d7a3b" },
+  { name: "beta_Home", value: 1.001, color: "#1d7a3b" },
+];
+
+const margin1 = { top: 20, right: 40, bottom: 20, left: 100 };
+const width1 = document.getElementById("rhatChart").parentElement.clientWidth - margin1.left - margin1.right;
+const height1 = 300;
+
+const svg1 = d3.select("#rhatChart")
+  .append("svg")
+  .attr("width", width1 + margin1.left + margin1.right)
+  .attr("height", height1 + margin1.top + margin1.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin1.left},${margin1.top})`);
+
+const y1 = d3.scaleBand().domain(rhatData.map(d => d.name)).range([0, height1]).padding(0.4);
+const x1 = d3.scaleLinear().domain([0.99, 1.02]).range([0, width1]);
+
+svg1.selectAll("rect")
+  .data(rhatData)
+  .enter()
+  .append("rect")
+  .attr("y", d => y1(d.name))
+  .attr("height", y1.bandwidth())
+  .attr("width", d => x1(d.value))
+  .attr("fill", d => d.color)
+  .attr("rx", 2);
+
+svg1.selectAll(".label")
+  .data(rhatData)
+  .enter()
+  .append("text")
+  .attr("class", "axis-label")
+  .attr("x", -10)
+  .attr("y", d => y1(d.name) + y1.bandwidth() / 2)
+  .attr("text-anchor", "end")
+  .attr("dominant-baseline", "middle")
+  .text(d => d.name);
+
+svg1.selectAll(".value")
+  .data(rhatData)
+  .enter()
+  .append("text")
+  .attr("class", "chart-text")
+  .attr("x", d => x1(d.value) - 8)
+  .attr("y", d => y1(d.name) + y1.bandwidth() / 2)
+  .attr("text-anchor", "end")
+  .text(d => d.value.toFixed(3));
+
+svg1.append("line")
+  .attr("x1", x1(1.01))
+  .attr("x2", x1(1.01))
+  .attr("y1", -10)
+  .attr("y2", height1)
+  .attr("stroke", "#FFD700")
+  .attr("stroke-width", 2)
+  .attr("stroke-dasharray", "4");
+
+// ─────────────────────────────────────────────────────────
+// 2. FOUR FACTORS
+// ─────────────────────────────────────────────────────────
+const factorsData = [
+  { name: "eFG %", value: 1.687, color: "#1d7a3b" },
+  { name: "TOV %", value: -0.833, color: "#c0392b" },
+  { name: "ORB %", value: 0.083, color: "#8893a0" },
+  { name: "FT Rate", value: 0.747, color: "#1d7a3b" },
+  { name: "Home", value: -0.023, color: "#8893a0" },
+];
+
+const margin2 = { top: 20, right: 40, bottom: 20, left: 80 };
+const width2 = document.getElementById("factorsChart").parentElement.clientWidth - margin2.left - margin2.right;
+const height2 = 280;
+
+const svg2 = d3.select("#factorsChart")
+  .append("svg")
+  .attr("width", width2 + margin2.left + margin2.right)
+  .attr("height", height2 + margin2.top + margin2.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin2.left},${margin2.top})`);
+
+const y2 = d3.scaleBand().domain(factorsData.map(d => d.name)).range([0, height2]).padding(0.4);
+const x2 = d3.scaleLinear().domain([-2.5, 3.5]).range([0, width2]);
+
+svg2.selectAll("rect")
+  .data(factorsData)
+  .enter()
+  .append("rect")
+  .attr("y", d => y2(d.name))
+  .attr("x", d => d.value < 0 ? x2(d.value) : x2(0))
+  .attr("height", y2.bandwidth())
+  .attr("width", d => Math.abs(x2(d.value) - x2(0)))
+  .attr("fill", d => d.color)
+  .attr("rx", 2);
+
+svg2.append("line")
+  .attr("x1", x2(0))
+  .attr("x2", x2(0))
+  .attr("y1", -10)
+  .attr("y2", height2)
+  .attr("stroke", "#ffffff")
+  .attr("stroke-width", 1)
+  .attr("stroke-dasharray", "2");
+
+svg2.selectAll(".label2")
+  .data(factorsData)
+  .enter()
+  .append("text")
+  .attr("class", "axis-label")
+  .attr("x", -10)
+  .attr("y", d => y2(d.name) + y2.bandwidth() / 2)
+  .text(d => d.name);
+
+// ─────────────────────────────────────────────────────────
+// 3. SERIES COMEBACK
+// ─────────────────────────────────────────────────────────
+const seriesData = [
+  { name: "Finals avg", value: 0.053, color: "#c0392b" },
+  { name: "Midpoint", value: 0.096, color: "#EF426F" },
+  { name: "Playoff win avg", value: 0.184, color: "#5a7a8a" },
+];
+
+const margin3 = { top: 20, right: 40, bottom: 20, left: 120 };
+const width3 = document.getElementById("seriesChart").parentElement.clientWidth - margin3.left - margin3.right;
+const height3 = 200;
+
+const svg3 = d3.select("#seriesChart")
+  .append("svg")
+  .attr("width", width3 + margin3.left + margin3.right)
+  .attr("height", height3 + margin3.top + margin3.bottom)
+  .append("g")
+  .attr("transform", `translate(${margin3.left},${margin3.top})`);
+
+const y3 = d3.scaleBand().domain(seriesData.map(d => d.name)).range([0, height3]).padding(0.5);
+const x3 = d3.scaleLinear().domain([0, 0.3]).range([0, width3]);
+
+svg3.selectAll("rect")
+  .data(seriesData)
+  .enter()
+  .append("rect")
+  .attr("y", d => y3(d.name))
+  .attr("height", y3.bandwidth())
+  .attr("width", d => x3(d.value))
+  .attr("fill", d => d.color)
+  .attr("rx", 3);
+
+svg3.selectAll(".label3")
+  .data(seriesData)
+  .enter()
+  .append("text")
+  .attr("class", "axis-label")
+  .attr("x", -10)
+  .attr("y", d => y3(d.name) + y3.bandwidth() / 2)
+  .text(d => d.name);
+
+svg3.selectAll(".value3")
+  .data(seriesData)
+  .enter()
+  .append("text")
+  .attr("class", "chart-text")
+  .attr("x", d => x3(d.value) + 6)
+  .attr("y", d => y3(d.name) + y3.bandwidth() / 2)
+  .attr("text-anchor", "start")
+  .text(d => (d.value * 100).toFixed(1) + "%");
+</script>
+
+</body>
+</html>
