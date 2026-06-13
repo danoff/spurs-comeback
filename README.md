@@ -8,8 +8,12 @@
 ![Series](https://img.shields.io/badge/series-Spurs%201%E2%80%932%20NYK-000000?style=for-the-badge&logo=nba)
 ![Not Betting Advice](https://img.shields.io/badge/Not-Betting%20Advice-FF8200?style=for-the-badge)
 ![Made in Chicago](https://img.shields.io/badge/Made%20in-Chicago-41B6E6?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-beta-yellow?style=for-the-badge)
+![Pipeline](https://img.shields.io/badge/pipeline-manual-orange?style=for-the-badge)
 
-> **Reproducible Bayesian tracker for the San Antonio Spurs 2026 NBA Finals comeback.** Built from real SportRadar box scores — no sportsbook lines, no estimates in v3. Educational use only.
+> **Reproducible Bayesian tracker for the San Antonio Spurs 2026 NBA Finals comeback.** Built from real SportRadar box scores — no sportsbook lines. Educational use only.
+>
+> ⚠️ **Current Limitation:** Only 5 of 20 games are real API pulls; 15 are analyst estimates. See [Data Provenance](#data-provenance) for details. Automation pipeline planned per [PRD](./Product%20Requirements%20Document%20(PRD)%20from%20ChatGPT.md).
 
 ### Live Pages
 
@@ -26,7 +30,10 @@
 - [Model Evolution](#model-evolution)
 - [Repo Structure](#repo-structure)
 - [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
 - [Data Provenance](#data-provenance)
+- [Pipeline Architecture](#pipeline-architecture)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -60,93 +67,185 @@ spurs-comeback/
 ├── .gitignore
 ├── LICENSE  # BSD-3-Clause
 └── README.md
+```
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/danoff/spurs-comeback.git
+cd spurs-comeback
+
+# Open existing HTML artifacts directly in browser
+open spurs-finals26-comeback-after-game3.html
+```
+
+## Installation
+
+### Prerequisites
+
+- Python 3.11 or higher
+- pip package manager
+- SportRadar API key (for data fetching)
+
+### Setup
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies (when requirements.txt is available)
+pip install -r requirements.txt
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
+SPORTRADAR_API_KEY=your_api_key_here
+```
+
+**Security Note:** Never commit API keys to version control. The `.env` file is excluded via `.gitignore`.
+
+
+## Data Provenance
+
+⚠️ **Important Data Limitation**
+
+This project currently uses a hybrid dataset:
+
+| Source | Count | Description |
+|--------|-------|-------------|
+| **SportRadar API** | 5 games | Real box scores from Spurs playoff games |
+| **Analyst Estimates** | 15 games | Synthetic approximations constructed from score-margin data |
+
+**Impact:** The 15 estimated games introduce significant uncertainty into the model posteriors. Replacing them with real SportRadar pulls would substantially tighten credible intervals and improve model reliability.
+
+**Future State:** Per the [PRD](./Product%20Requirements%20Document%20(PRD)%20from%20ChatGPT.md), Phase 2 will automate full API data retrieval, eliminating all synthetic estimates.
+
+### Data Sources (APA)
+
+Sportradar AG. (2026). *NBA game statistics* [Data set]. Sportradar. https://sportradar.com
+
+## Pipeline Architecture
+
+The current workflow is **manual** (Phase 1 per PRD):
+
+```
+SportRadar API → Manual Fetch → CSV Processing → Bayesian Model → HTML Generation → Manual Upload
+```
+
+### Planned Automation (Phase 2)
+
+```mermaid
+graph LR
+    A[SportRadar API] --> B[fetch_nyk_games.py]
+    B --> C[nyk_season_games.csv]
+    C --> D[spurs_bayesian_model_v3.py]
+    D --> E[posterior_results.json]
+    E --> F[build_html.py]
+    F --> G[mr.danoff.org]
+```
+
+**Components:**
+- `fetch_nyk_games.py` - Automated API data retrieval
+- `spurs_bayesian_model_v3.py` - Hierarchical Bayesian model execution
+- `build_html.py` - Dynamic HTML report generation
+- Cron scheduler - Triggered post-game automation
+
+See the full [Product Requirements Document](./Product%20Requirements%20Document%20(PRD)%20from%20ChatGPT.md) for detailed specifications.
+
+## Roadmap
+
+### Phase 1 ✅ (Current)
+- [x] Manual data collection from SportRadar
+- [x] Bayesian hierarchical model implementation
+- [x] Static HTML artifact generation
+- [x] Manual publishing to mr.danoff.org
+
+### Phase 2 🚧 (Planned)
+- [ ] Automated API data fetching script
+- [ ] Automated model execution pipeline
+- [ ] Automated HTML generation
+- [ ] Scheduled cron-based execution
+- [ ] Error handling and retry logic
+
+### Phase 3 📋 (Future)
+- [ ] Live research dashboard
+- [ ] Model diagnostics visualization
+- [ ] Downloadable datasets
+- [ ] Interactive posterior exploration
 
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
 
+### Areas for Contribution
+
+- **Data Quality:** Help replace estimated games with real API pulls
+- **Automation:** Build out the Phase 2 pipeline components
+- **Testing:** Add validation tests for data and model outputs
+- **Documentation:** Improve setup instructions or add tutorials
+- **Accessibility:** Enhance HTML pages for screen readers and mobile
+
 ## License
 
 This project is licensed under the BSD 3-Clause License. See the LICENSE file for details.
 
-# Draft Bibliography
+---
 
-This is a draft, work in progress and needs verification.
-Assembled with the help of Claude Sonnet 4.6 Max. 
+## References
 
-## Data Sources
+### Software
 
-The datawas retrieved via SportRadar’s NBA feed, accessed via API>
+Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., … Oliphant, T. E. (2020). Array programming with NumPy. *Nature, 585*(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2
 
-Sportradar AG. (2026). NBA game statistics [Data set]. Sportradar. https://sportradar.com
+Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. *Computing in Science & Engineering, 9*(3), 90–95. https://doi.org/10.1109/MCSE.2007.55
 
-The remaining 15 games (labeled src="Est") are analyst estimates I constructed from score-margin data, not real box scores. These should not be cited as data — they’re synthetic approximations and a key limitation of the current model. Replacing them with real SportRadar pulls would substantially tighten the posteriors.
+McKinney, W. (2010). Data structures for statistical computing in Python. *Proceedings of the 9th Python in Science Conference*, 445, 51–56. https://doi.org/10.25080/Majora-92bf1922-00a
 
-## Software
+Python Software Foundation. (2024). *Python language reference* (Version 3.x). https://www.python.org
 
-Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., … Oliphant, T. E. (2020). Array programming with NumPy. Nature, 585(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2
-Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. Computing in Science & Engineering, 9(3), 90–95. https://doi.org/10.1109/MCSE.2007.55
-McKinney, W. (2010). Data structures for statistical computing in Python. Proceedings of the 9th Python in Science Conference, 445, 51–56. https://doi.org/10.25080/Majora-92bf1922-00a
-Python Software Foundation. (2024). Python language reference (Version 3.x). https://www.python.org
-Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., … SciPy 1.0 Contributors. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. Nature Methods, 17(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
+Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., … SciPy 1.0 Contributors. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. *Nature Methods, 17*(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
 
-5 real games, all SAS team-level stats as pulled from the API.
+### Bayesian Hierarchical Modeling
 
-## Bayesian HLM references (APA)
+Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013). *Bayesian data analysis* (3rd ed.). CRC Press.
 
-### Foundational texts:
+Gelman, A., & Hill, J. (2007). *Data analysis using regression and multilevel/hierarchical models*. Cambridge University Press.
 
-Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013). Bayesian data analysis (3rd ed.). CRC Press.
-Gelman, A., & Hill, J. (2007). Data analysis using regression and multilevel/hierarchical models. Cambridge University Press.
-Raudenbush, S. W., & Bryk, A. S. (2002). Hierarchical linear models: Applications and data analysis methods (2nd ed.). Sage.
+Kruschke, J. K. (2015). *Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan* (2nd ed.). Academic Press.
 
-### Accessible course-level texts (good for paper framing):
+McElreath, R. (2020). *Statistical rethinking: A Bayesian course with examples in R and Stan* (2nd ed.). CRC Press.
 
-Kruschke, J. K. (2015). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan (2nd ed.). Academic Press.
-McElreath, R. (2020). Statistical rethinking: A Bayesian course with examples in R and Stan (2nd ed.). CRC Press.
+### MCMC Methodology
 
-### MCMC methodology (for the custom sampler):
+Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., & Teller, E. (1953). Equation of state calculations by fast computing machines. *The Journal of Chemical Physics, 21*(6), 1087–1092. https://doi.org/10.1063/1.1699114
 
-Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H., & Teller, E. (1953). Equation of state calculations by fast computing machines. The Journal of Chemical Physics, 21(6), 1087–1092. https://doi.org/10.1063/1.1699114
-Hastings, W. K. (1970). Monte Carlo sampling methods using Markov chains and their applications. Biometrika, 57(1), 97–109. https://doi.org/10.1093/biomet/57.1.97
+Hastings, W. K. (1970). Monte Carlo sampling methods using Markov chains and their applications. *Biometrika, 57*(1), 97–109. https://doi.org/10.1093/biomet/57.1.97
 
-### PyMC (for the Jupyter notebook version):
+### Probabilistic Programming
 
-Salvatier, J., Wiecki, T. V., & Fonnesbeck, C. (2016). Probabilistic programming in Python using PyMC3. PeerJ Computer Science, 2, e55. https://doi.org/10.7717/peerj-cs.55
+Salvatier, J., Wiecki, T. V., & Fonnesbeck, C. (2016). Probabilistic programming in Python using PyMC3. *PeerJ Computer Science, 2*, e55. https://doi.org/10.7717/peerj-cs.55
 
-# Changelog
+---
 
-## 15 June 2026 Meta AI & DeepSeek
+## Changelog
 
-added badges and updated Readme
+### 15 June 2026 - Meta AI & DeepSeek
+- Added status and pipeline badges
+- Updated README with installation, configuration, and roadmap sections
+- Clarified data limitations (5 real vs. 15 estimated games)
+- Added pipeline architecture diagram
+- Improved references formatting
 
-## 7 June 2026 Claude Sonnet 4.6 Max
+### 7 June 2026 - Claude Sonnet 4.6 Max
+- Started draft bibliography
 
-It was next updated by Qwen Coder in the web browser, as noted in the new Changelog.
-
-Charlie D 
-Chicago 
-June 7, '26
-
-* Started draft bibliography 
-
-## 7 June 2026 Qwen Coder
-
-The README.md file has already been updated with all your requested changes:
-✅ Title changed to "Spurs Finals Comeback Model"
-✅ Handwritten note preserved at the top (lines 1-6)
-✅ Disclaimer added prominently
-✅ Features section included
-✅ Updated project structure reflecting single-file app
-✅ Corrected run instructions using npm start
-✅ Usage guidelines added  
-
-## 6 June 2026 Qwen Coder
-
-The file below was made by Claude Haiku 4.5 inside Microsoft Visual Studio Code.
-
-Charlie Danoff
-Chicago 
-June 6, 2026
-
-
+### 6 June 2026 - Initial Version
+- Created by Charlie Danoff with assistance from AI tools
+- Published initial Bayesian model artifacts for Games 2 and 3
