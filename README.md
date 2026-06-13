@@ -1,16 +1,13 @@
 
-The file below was made by Claude Haiku 4.5 inside Microsoft Visual Studio Code.
 
-Charlie Danoff
-Chicago 
-June 6, 2026
-
-It was next updated by Qwen Coder in the web browser, as noted in the new Changelog.
-
-Charlie D 
-Chicago 
-June 7, '26
-
+![Live: Game 3](https://img.shields.io/website?url=https%3A%2F%2Fwww.mr.danoff.org%2Fspurs-finals26-comeback-after-game3.html&label=live%20demo&up_color=00B2A9&style=for-the-badge&logo=googlechrome&logoColor=white)
+![License: BSD-3](https://img.shields.io/github/license/danoff/spurs-comeback?style=for-the-badge&color=blue)
+![Last Commit](https://img.shields.io/github/last-commit/danoff/spurs-comeback?style=for-the-badge)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Model](https://img.shields.io/badge/model-Bayesian%20Hierarchical-EF426F?style=for-the-badge)
+![Series](https://img.shields.io/badge/series-Spurs%201%E2%80%932%20NYK-000000?style=for-the-badge&logo=nba)
+![Not Betting Advice](https://img.shields.io/badge/Not-Betting%20Advice-FF8200?style=for-the-badge)
+![Made in Chicago](https://img.shields.io/badge/Made%20in-Chicago-41B6E6?style=for-the-badge)
 
 # Spurs Finals Comeback Model
 
@@ -138,7 +135,17 @@ Salvatier, J., Wiecki, T. V., & Fonnesbeck, C. (2016). Probabilistic programming
 
 # Changelog
 
+## 15 June 2026 Meta AI & DeepSeek
+
+added badges and updated Readme
+
 ## 7 June 2026 Claude Sonnet 4.6 Max
+
+It was next updated by Qwen Coder in the web browser, as noted in the new Changelog.
+
+Charlie D 
+Chicago 
+June 7, '26
 
 * Started draft bibliography 
 
@@ -153,5 +160,12 @@ The README.md file has already been updated with all your requested changes:
 ✅ Corrected run instructions using npm start
 ✅ Usage guidelines added  
 
+## 6 June 2026 Qwen Coder
+
+The file below was made by Claude Haiku 4.5 inside Microsoft Visual Studio Code.
+
+Charlie Danoff
+Chicago 
+June 6, 2026
 
 
