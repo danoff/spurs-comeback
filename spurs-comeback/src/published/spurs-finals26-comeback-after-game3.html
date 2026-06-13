@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spurs 1-2 Deficit | Bayesian Series Analysis — mr.danoff.org</title>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --teal: #00B2A9;
+            --pink: #EF426F;
+            --orange: #FF8200;
+            --gold: #FFC72C;
+            --silver: #C4CED4;
+            --bg: #0f0f1a;
+            --glass-bg: rgba(255,255,255,0.03);
+            --glass-border: rgba(255,255,255,0.1);
+            --glass-radius: 16px;
+        }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 6rem;
+            background-color: var(--bg);
+            color: #e8eef2;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 400;
+        }
+
+        .mono {
+            font-family: 'DM Mono', monospace;
+        }
+
+        a {
+            color: var(--silver);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--teal);
+            text-decoration: underline;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--glass-radius);
+        }
+
+        .grad {
+            background: linear-gradient(90deg, var(--teal), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--teal);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .3; }
+        }
+
+        .eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: .5rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        header {
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 2.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            line-height: 1.1;
+            color: #fff;
+            margin: .5rem 0 1.1rem;
+        }
+
+        .lede {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--silver);
+            max-width: 660px;
+        }
+
+        .lede strong {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* Sections */
+        section {
+            margin: 3rem 0;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--orange);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: var(--teal);
+            margin-bottom: 1rem;
+        }
+
+        /* Predictions box */
+        .predictions {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--glass-radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .prediction-item:last-child {
+            border-bottom: none;
+        }
+
+        .prediction-label {
+            color: var(--silver);
+            font-size: 0.95rem;
+        }
+
+        .prediction-value {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            color: var(--teal);
+        }
+
+        .prediction-ci {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--silver);
+            margin-left: 0.5rem;
+        }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.2rem 1.4rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9.5px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: var(--silver);
+            margin-bottom: .4rem;
+        }
+
+        .stat-ctx {
+            font-size: .78rem;
+            color: var(--silver);
+            margin-top: .35rem;
+            line-height: 1.5;
+        }
+
+        .stat-ctx strong {
+            color: var(--pink);
+        }
+
+        .stat-ctx span {
+            color: var(--teal);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--teal);
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--silver);
+        }
+
+        tr.highlight td {
+            background: rgba(0, 178, 169, 0.08);
+        }
+
+        td strong {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin-left: .4rem;
+            vertical-align: middle;
+        }
+
+        .b-teal {
+            background: rgba(0, 178, 169, 0.13);
+            color: var(--teal);
+        }
+
+        .b-pink {
+            background: rgba(239, 66, 111, 0.13);
+            color: var(--pink);
+        }
+
+        .b-dim {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--silver);
+        }
+
+        /* Chart */
+        .chart-wrap {
+            height: 300px;
+            width: 100%;
+            position: relative;
+            margin: 1.5rem 0;
+        }
+
+        .legend-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #e8eef2;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .swatch {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+            border-top: 1px solid var(--glass-border);
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        footer a {
+            color: var(--teal);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 1.5rem 1rem 4rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+
+            .prediction-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="eyebrow">
+            <span class="dot"></span>
+            After Game 3 · NBA Finals 2026
+        </div>
+        <h1>Spurs 1–2 Deficit<br><span class="grad">Bayesian Series Analysis</span></h1>
+        <p class="lede">
+            A three-hierarchy Bayesian analysis of San Antonio's playoff and regular-season statistics against the Knicks — <strong>updated after the Spurs' Game 3 road win at Madison Square Garden</strong>.
+        </p>
+        <p style="color: var(--silver); font-size: 0.85rem; margin-top: 1rem;">
+            by Charlie of <a href="https://mr.danoff.org" target="_blank">Mr. Danoff's Teaching Laboratory</a> · Last Updated June 10th, 2026
+        </p>
+    </header>
+
+    <!-- Plain English Section with Predictions -->
+    <section>
+        <h2>Plain English</h2>
+        <p class="lede">
+            The Spurs' Game 3 victory (115-111 away) dramatically shifted their comeback prospects from near-zero to realistic, with the model showing:
+        </p>
+
+        <div class="predictions">
+            <div class="prediction-item">
+                <span class="prediction-label">If they maintain Game 3 performance:</span>
+                <span>
+                    <span class="prediction-value">62.1%</span>
+                    <span class="prediction-ci">[2.8%, 99.8%]</span>
+                </span>
+            </div>
+            <div class="prediction-item">
+                <span class="prediction-label">If they regress to Finals average (G1-G3):</span>
+                <span>
+                    <span class="prediction-value">4.9%</span>
+                    <span class="prediction-ci">[0.0%, 27.4%]</span>
+                </span>
+            </div>
+            <div class="prediction-item">
+                <span class="prediction-label">Midpoint scenario:</span>
+                <span>
+                    <span class="prediction-value">42.0%</span>
+                    <span class="prediction-ci">[0.9%, 92.7%]</span>
+                </span>
+            </div>
+        </div>
+
+        <p class="lede">
+            The remaining schedule still runs two of the next three games in New York, so the away win probability is the critical number — and Game 3 showed they can get it.
+        </p>
+    </section>
+
+    <!-- Game 3 Recap -->
+    <section>
+        <h2>Game 3 Recap</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">115-111</div>
+                <div class="stat-label">Final Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">Away</div>
+                <div class="stat-label">Location</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">MSG</div>
+                <div class="stat-label">Venue</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What Changed -->
+    <section>
+        <h2>What Changed from Games 1-2 → Game 3</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">28</div>
+                <div class="stat-label">Assists</div>
+                <div class="stat-ctx"><span>↑ from 19/22</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Turnovers</div>
+                <div class="stat-ctx"><span>↓ from 13/16</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">46%</div>
+                <div class="stat-label">FG%</div>
+                <div class="stat-ctx"><span>↑ from 41% avg</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">48</div>
+                <div class="stat-label">Rebounds</div>
+                <div class="stat-ctx">≈ same</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3.5</div>
+                <div class="stat-label">Ast/TO ratio</div>
+                <div class="stat-ctx"><span>↑ from 1.4</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bayesian Model Table -->
+    <section>
+        <h2>Bayesian Model: Comeback Probability by Scenario</h2>
+        <p style="color: var(--silver); font-size: 0.9rem; margin-bottom: 1rem;">
+            Remaining schedule: G4 Away · G5 Home · G6 Away · G7 Home — NYK needs 2 more wins, SAS needs 3
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>P(win home)</th>
+                    <th>P(win away)</th>
+                    <th>P(comeback)</th>
+                    <th>90% CI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Finals avg (G1-G3)</strong> <span class="badge b-pink">baseline</span></td>
+                    <td>14.6%</td>
+                    <td>17.3%</td>
+                    <td><strong>4.9%</strong></td>
+                    <td>[0.0%, 27.4%]</td>
+                </tr>
+                <tr class="highlight">
+                    <td><strong>Game 3 level</strong> <span class="badge b-teal">last game</span></td>
+                    <td>66.6%</td>
+                    <td>70.1%</td>
+                    <td><strong>62.1%</strong></td>
+                    <td>[2.8%, 99.8%]</td>
+                </tr>
+                <tr>
+                    <td><strong>Midpoint improvement</strong> <span class="badge b-teal">scenario</span></td>
+                    <td>52.5%</td>
+                    <td>56.1%</td>
+                    <td><strong>42.0%</strong></td>
+                    <td>[0.9%, 92.7%]</td>
+                </tr>
+                <tr>
+                    <td><strong>Other playoff win avg</strong> <span class="badge b-dim">ceiling</span></td>
+                    <td>87.4%</td>
+                    <td>89.5%</td>
+                    <td><strong>89.6%</strong></td>
+                    <td>[47.2%, 100.0%]</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size: 0.8rem; color: var(--silver); margin-top: 1rem; font-style: italic;">
+            Probabilities are posterior medians from the v3 model (3-hierarchy partial pooling, 10,000 MCMC draws). Run <code class="mono">spurs_bayesian_model_v3.py</code> after Game 4 for updated numbers.
+        </p>
+    </section>
+
+    <!-- Posterior Distribution -->
+    <section>
+        <h2>Posterior Distribution of Comeback Probability</h2>
+        <p style="color: var(--silver); font-size: 0.9rem; margin-bottom: 1rem;">
+            Simulated from 5,000 browser-side draws using beta-distributed posteriors. The Game 3 and midpoint scenarios now overlap significantly — the Spurs' Game 3 performance was close to their historical winning profile, not an outlier.
+        </p>
+
+        <div class="legend-row">
+            <span><span class="swatch" style="background:#EF426F"></span>Finals avg (G1-G3)</span>
+            <span><span class="swatch" style="background:#00B2A9"></span>Game 3 level / midpoint</span>
+            <span><span class="swatch" style="background:#8893a0"></span>Other playoff win avg</span>
+        </div>
+
+        <div class="chart-wrap glass">
+            <canvas id="densityChart" role="img" aria-label="Histogram of three posterior distributions showing comeback probabilities under different scenarios."></canvas>
+        </div>
+    </section>
+
+    <!-- What Drives Spurs Wins -->
+    <section>
+        <h2>What Drives Spurs Wins</h2>
+        <p style="color: var(--silver); font-size: 0.9rem; margin-bottom: 1rem;">
+            Observed averages from SportRadar box scores — descriptive statistics, not model coefficients. The logistic regression assigns highest posterior confidence to assists and turnovers as predictors of winning.
+        </p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">27</div>
+                <div class="stat-label">Assists</div>
+                <div class="stat-ctx">playoff win avg<br><strong>19/22</strong> G1-G2 · <strong>28</strong> G3 · <span>↑ target met</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">48%</div>
+                <div class="stat-label">FG%</div>
+                <div class="stat-ctx">playoff win avg<br><strong>36/47%</strong> G1-G2 · <strong>46%</strong> G3 · <span>↑ trending</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">50</div>
+                <div class="stat-label">Rebounds</div>
+                <div class="stat-ctx">playoff win avg<br><strong>60/53</strong> G1-G2 · <strong>48</strong> G3 · roughly on par</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Turnovers</div>
+                <div class="stat-ctx">playoff win avg<br><strong>13/16</strong> G1-G2 · <strong>8</strong> G3 · <span>↓ target met</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Model v3 -->
+    <section>
+        <h2>Model v3</h2>
+        <p class="lede">
+            Three-hierarchy Bayesian hierarchical logistic regression with partial pooling across groups:
+            <strong>Group 0</strong> = NYK Finals (n=3);
+            <strong>Group 1</strong> = Pre-Finals SAS vs NYK matchups — two regular season games and the NBA Cup Final (n=3);
+            <strong>Group 2</strong> = All other 2026 SAS playoff games (n=18).
+        </p>
+        <p class="lede" style="margin-top: 1rem;">
+            Fit via adaptive Metropolis-Hastings, 10,000 post-warmup draws. Predictors: FG%, rebounds, assists, steals, blocks, turnovers, home/away indicator — all standardised. The third hierarchy adds matchup-specific information the earlier model lacked.
+        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>Feedback, comments, and questions are welcome!</p>
+        <p><a href="https://bsky.app/profile/teachinglaboratory.bsky.social">@teachinglaboratory.bsky.social</a> on Bluesky · Email <a href="mailto:contact@mr.danoff.org">contact@mr.danoff.org</a> · <a href="https://twitter.com/danoff" target="_blank">@danoff</a> on Twitter</p>
+        <p>Data: <a href="https://developer.sportradar.com/basketball/docs/nba-ig-api-basics" target="_blank">SportRadar NBA API</a> · All 20 SAS 2026 playoff games · Real box scores, no estimates.</p>
+        <p><a href="https://github.com/danoff/basketball" target="_blank">github.com/danoff/basketball</a> · <a href="https://mr.danoff.org" target="_blank">mr.danoff.org</a></p>
+        <p>For visualization and scenario analysis only. This is not betting advice and does not use live sportsbook lines.</p>
+    </footer>
+
+    <!-- Chart.js Posterior Distribution -->
+    <script>
+        (function() {
+            function nr() {
+                let u = 0, v = 0;
+                while (!u) u = Math.random();
+                while (!v) v = Math.random();
+                return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+            }
+
+            function gr(s) {
+                if (s < 1) return gr(1 + s) * Math.pow(Math.random(), 1 / s);
+                const d = s - 1 / 3, c = 1 / Math.sqrt(9 * d);
+                while (true) {
+                    let x = nr(), v = 1 + c * x;
+                    if (v <= 0) continue;
+                    v = v * v * v;
+                    const u = Math.random();
+                    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+                    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+                }
+            }
+
+            function bs(a, b) {
+                const g1 = gr(a), g2 = gr(b);
+                return g1 / (g1 + g2);
+            }
+
+            function bp(mean, std) {
+                const v = std * std;
+                const a = mean * ((mean * (1 - mean) / v) - 1);
+                const b = (1 - mean) * ((mean * (1 - mean) / v) - 1);
+                return [Math.max(0.5, a), Math.max(0.5, b)];
+            }
+
+            // Series combinatorics from 1-2: SAS needs 3, NYK needs 2
+            // Remaining: G4(Away), G5(Home), G6(Away), G7(Home)
+            function sp(pH, pA) {
+                const p_sweep = pA * pH * pA;
+                const p_lose_G4 = (1 - pA) * pH * pA * pH;
+                const p_lose_G5 = pA * (1 - pH) * pA * pH;
+                const p_lose_G6 = pA * pH * (1 - pA) * pH;
+                return p_sweep + p_lose_G4 + p_lose_G5 + p_lose_G6;
+            }
+
+            function sim(hm, hs, am, as_, n) {
+                const [aH, bH] = bp(hm, hs);
+                const [aA, bA] = bp(am, as_);
+                const r = [];
+                for (let i = 0; i < n; i++) {
+                    const pH = Math.min(.999, Math.max(.001, bs(aH, bH)));
+                    const pA = Math.min(.999, Math.max(.001, bs(aA, bA)));
+                    r.push(sp(pH, pA));
+                }
+                return r;
+            }
+
+            function hist(s, bins, N) {
+                const c = new Array(bins).fill(0);
+                for (const v of s) {
+                    const i = Math.min(bins - 1, Math.floor(v * bins));
+                    c[i]++;
+                }
+                return c.map(x => x / N);
+            }
+
+            const N = 5000, bins = 50;
+            const labels = Array.from({length: bins}, (_, i) => ((i / bins) * 100).toFixed(0) + '%');
+
+            // Parameters calibrated to v3 model output
+            const fa = sim(0.049, 0.06, 0.16, 0.05, N);  // Finals avg
+            const g3 = sim(0.621, 0.25, 0.68, 0.08, N);  // Game 3 level
+            const mp = sim(0.42, 0.22, 0.54, 0.1, N);    // Midpoint
+            const pa = sim(0.896, 0.12, 0.885, 0.04, N); // Other playoff win avg
+
+            new Chart(document.getElementById('densityChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Finals avg',
+                            data: hist(fa, bins, N),
+                            backgroundColor: 'rgba(239,66,111,0.55)',
+                            barPercentage: 1,
+                            categoryPercentage: 1,
+                            borderWidth: 0
+                        },
+                        {
+                            label: 'Game 3 / midpoint',
+                            data: hist(g3, bins, N),
+                            backgroundColor: 'rgba(0,178,169,0.45)',
+                            barPercentage: 1,
+                            categoryPercentage: 1,
+                            borderWidth: 0
+                        },
+                        {
+                            label: 'Playoff win avg',
+                            data: hist(pa, bins, N),
+                            backgroundColor: 'rgba(136,147,160,0.40)',
+                            barPercentage: 1,
+                            categoryPercentage: 1,
+                            borderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(5,5,5,0.92)',
+                            titleColor: '#C4CED4',
+                            bodyColor: '#8893a0',
+                            borderColor: 'rgba(196,206,212,0.12)',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: c => 'P(comeback) ≈ ' + c[0].label,
+                                label: c => c.dataset.label + ': ' + (c.raw * 100).toFixed(1) + '% density'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            grid: { display: false },
+                            ticks: {
+                                color: '#8893a0',
+                                font: { size: 11 },
+                                maxTicksLimit: 11,
+                                callback: (v, i) => i % (Math.floor(bins / 10)) === 0 ? labels[i] : ''
+                            }
+                        },
+                        y: { display: false }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
