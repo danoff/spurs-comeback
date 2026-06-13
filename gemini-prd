@@ -1,0 +1,343 @@
+Product Requirements Document (PRD)
+Project Name
+Automated Sports Analytics Publishing Pipeline
+
+Sponsor
+Mr. Danoff's Teaching Laboratory LLC (daLab)
+
+Author
+Charles J. Danoff
+
+Vision
+Create an automated, reproducible research pipeline that transforms live sports data into public-facing statistical analysis published on mr.danoff.org.
+
+The system will demonstrate:
+
+API integration
+
+Data engineering & pace-neutral feature extraction
+
+Bayesian hierarchical modeling (MCMC)
+
+Reproducible research
+
+Peeragogy principles
+
+Automated web publishing
+
+The initial use case will be the 2026 NBA Finals between the San Antonio Spurs and New York Knicks.
+
+Problem Statement
+Current workflow requires:
+
+Manual SportRadar API queries and endpoint verification
+
+Manual game ID discovery
+
+Manual CSV generation and data-type casting
+
+Manual Bayesian model execution
+
+Manual HTML updates
+
+Manual publishing
+
+This creates unnecessary effort, limits scalability, and increases the chance of human error.
+
+Goals
+Primary Goals
+Automatically retrieve deep game summaries from the SportRadar API.
+
+Automatically engineer model-ready datasets utilizing Dean Oliver's Four Factors.
+
+Automatically execute a custom Bayesian Adaptive Metropolis-Hastings sampler.
+
+Automatically publish updated HTML reports featuring log-normal probability distributions.
+
+Preserve complete methodological transparency.
+
+Secondary Goals
+Demonstrate reproducible analytics workflows.
+
+Support future NBA, NCAA, and other sports projects.
+
+Create educational examples for students and researchers.
+
+Showcase daLab technical capabilities.
+
+Success Metrics
+Technical
+Data refresh completes without manual intervention, gracefully bypassing 429 Rate Limits.
+
+Updated analysis published within 15 minutes of pipeline execution.
+
+Historical results preserved.
+
+Pipeline success rate >95%.
+
+Research
+All model inputs (priors, covariates) documented.
+
+All outputs reproducible via explicit RNG seeding.
+
+Methodology publicly accessible.
+
+Educational
+Pipeline diagram available.
+
+Source code available via GitHub.
+
+Example datasets available.
+
+System Architecture
+SportRadar API (summary.json endpoint)
+↓
+Data Acquisition & Feature Engineering Layer
+(fetch_and_four_factors.py)
+↓
+Data Storage Layer
+(spurs_2026_all24_four_factors.csv)
+↓
+Model Layer
+(spurs_bayesian_model_v4.py - Adaptive MCMC)
+↓
+Publication Layer
+(build_html.py)
+↓
+mr.danoff.org
+
+Functional Requirements
+FR-1 Data Collection
+System shall:
+
+Connect to SportRadar API v8 summary endpoints.
+
+Auto-discover relevant game IDs from schedule payloads.
+
+Handle API 429 rate limits via exponential backoff.
+
+Store raw responses for auditing.
+
+Output: raw_summary.json
+
+FR-2 Data Processing & Feature Engineering
+System shall:
+
+Parse deep game summaries and player arrays.
+
+Execute mathematical fallbacks for missing aggregate data (e.g., manually summing player turnovers).
+
+Calculate pace-neutral metrics (Effective FG%, Turnover %, Offensive Rebound %, FT Rate).
+
+Export a standardized, type-safe CSV.
+
+Output: spurs_2026_all24_four_factors.csv
+
+FR-3 Bayesian Analysis
+System shall:
+
+Execute a 3-hierarchy Bayesian Logistic Regression model (Finals, Pre-Finals, Other Playoffs).
+
+Utilize a custom Adaptive Metropolis-Hastings sampler to generate 10,000 posterior draws.
+
+Calculate exact game-to-series combinatorics (e.g., P(win 3 before losing 2)).
+
+Extract posterior medians and 90% Credible Intervals (CI).
+
+Output: posterior_results.json
+
+FR-4 HTML Generation
+System shall:
+
+Generate article pages using the daLab Fiesta-glass visual system.
+
+Update Chart.js log-normal density plots dynamically.
+
+Insert latest MCMC posterior summaries.
+
+Preserve historical versions.
+
+Outputs:
+game3-analysis.html
+game4-analysis.html
+final-retrospective.html
+
+FR-5 Automated Publishing
+System shall:
+
+Deploy generated pages.
+
+Publish to mr.danoff.org.
+
+Maintain version history.
+
+Non-Functional Requirements
+Reliability
+Automatic retries on API failures.
+
+Safe type-casting and mathematical fallbacks for missing dataset keys.
+
+Transparency
+All calculations documented.
+
+Source code available.
+
+Reproducibility
+Historical runs archived.
+
+Versioned outputs retained.
+
+Security
+SportRadar API key stored server-side (environment variables).
+
+No API credentials exposed publicly.
+
+Peeragogy Alignment
+This project demonstrates:
+
+Learning by doing
+
+Learning in public
+
+Transparent methodology
+
+Iterative improvement
+
+Reproducible research
+
+The goal is not merely to predict outcomes but to document how knowledge evolves as evidence accumulates.
+
+Educational Value
+This project serves as a practical demonstration of the complete analytics lifecycle.
+
+Students, researchers, and practitioners often learn API integration, data engineering, statistical modeling, and web publishing as separate topics. This project intentionally combines them into a single end-to-end workflow.
+
+Learning Objectives
+Participants should be able to:
+
+Retrieve data from a third-party API.
+
+Process and validate raw data, utilizing first-principles math when API keys are missing.
+
+Build reproducible analytical datasets (Pace-neutral Four Factors).
+
+Execute custom Bayesian Markov Chain Monte Carlo (MCMC) models.
+
+Generate automated reports with truthful, skewed data visualizations.
+
+Publish research findings on the web.
+
+Document assumptions and methodology.
+
+Skills Demonstrated
+Data Engineering
+API authentication & Rate Limit handling
+
+JSON parsing
+
+ETL workflows & feature engineering
+
+Data validation
+
+Data Science
+Bayesian inference & MCMC sampling
+
+Hierarchical modeling (Partial pooling)
+
+Statistical feature selection
+
+Predictive analytics & Combinatorics
+
+Software Development
+Python scripting
+
+Version control
+
+Automated publishing
+
+Reproducible workflows
+
+Research Communication
+Transparent methodology
+
+Public-facing analysis
+
+Iterative publication
+
+Open educational practices
+
+Why Sports?
+Sports provide a highly accessible environment for learning analytics.
+Unlike many business or scientific datasets, sports data is:
+
+Publicly observable
+
+Frequently updated
+
+Easy to verify
+
+Rich in uncertainty
+
+Interesting to a broad audience
+
+The sports domain therefore serves as an effective teaching laboratory for data literacy, statistical reasoning, and computational thinking.
+
+Connection to daLab
+This project reflects the mission of Mr. Danoff's Teaching Laboratory LLC:
+
+Learn by building.
+
+Learn by sharing.
+
+Learn by improving public knowledge.
+
+The Spurs Finals project is not merely a prediction exercise. It is a working example of how modern analytics systems can transform raw data into transparent, reproducible, and publicly accessible knowledge.
+
+Project Phases
+Phase 1: Manual Execution (Current)
+fetch_and_four_factors.py
+↓
+spurs_bayesian_model_v4.py
+↓
+build_html.py
+↓
+Upload to mr.danoff.org
+
+Phase 2: Automated Execution
+Cron Job
+↓
+fetch_and_four_factors.py
+↓
+spurs_bayesian_model_v4.py
+↓
+build_html.py
+↓
+Automatic publication
+
+Phase 3: Live Research Dashboard
+Features:
+
+Current series state
+
+Posterior probabilities and Log-Normal distribution charts
+
+Model diagnostics (Forest plots)
+
+Downloadable datasets
+
+Methodology documentation
+
+URL: mr.danoff.org/research/spurs-finals-2026/
+
+Document Changelog
+2026-06-13: * Updated architecture to reflect the v4 pipeline execution.
+
+Replaced generic data processing with specific pace-neutral feature engineering (Dean Oliver's Four Factors).
+
+Updated the API requirements to target the summary.json endpoint for deep statistical payloads and added exponential backoff requirements for 429 rate limits.
+
+Specified the use of a 3-Hierarchy Bayesian Logistic Regression and a custom Adaptive Metropolis-Hastings MCMC sampler in the Modeling layer.
+
+Adjusted dataset scope from 20 games to 24/25 games to accurately encompass NBA Cup and Regular Season interactions.
+
+Added requirements for truthful, non-Gaussian visualizations (Log-Normal distributions) in the HTML generation layer.
