@@ -9,75 +9,57 @@
 ![Not Betting Advice](https://img.shields.io/badge/Not-Betting%20Advice-FF8200?style=for-the-badge)
 ![Made in Chicago](https://img.shields.io/badge/Made%20in-Chicago-41B6E6?style=for-the-badge)
 
-# Spurs Finals Comeback Model
+> **Reproducible Bayesian tracker for the San Antonio Spurs 2026 NBA Finals comeback.** Built from real SportRadar box scores — no sportsbook lines, no estimates in v3. Educational use only.
 
-An interactive web application that models the San Antonio Spurs' probability of winning an NBA Finals series after being down 0-2.
+### Live Pages
 
-> **Disclaimer:** This is not betting advice. This is a mathematical simulation for educational and entertainment purposes only.
+- **After Game 2 (Spurs down 0-2):** https://www.mr.danoff.org/spurs-finals26-comeback-after-game2.html — v2 model, 2-group partial pooling
+- **After Game 3 (Spurs down 1-2, 115-111 win at MSG):** https://www.mr.danoff.org/spurs-finals26-comeback-after-game3.html — v3 model, 3-group partial pooling
+- **Game 4 skeleton:** committed to `main` 19 minutes ago (pre-Game 4 tip)
 
-## Features
+> **Game 5 PRD:** The full requirements for the next automated tracker are tracked in this repo: [`Product_Requirements_Document_PRD_from_ChatGPT.md`](./Product_Requirements_Document_PRD_from_ChatGPT.md)
 
-- **Interactive Scenario Levers:** Adjust 4 key game factors (Offensive Efficiency, Defensive Pressure, Rebounding Margin, Clutch Performance) to see how they impact win probability.
-- **Probability Gauge:** Real-time visualization of the calculated comeback chance.
-- **Dual-Engine Calculation:** Uses exact enumeration for small state spaces and Monte Carlo simulation (100k iterations) for complex scenarios.
-- **Historical Baseline:** Anchored to the historical ~13.5% comeback rate from 0-2 deficits in best-of-7 series.
-- **Responsive Design:** Works on desktop and mobile with a dark theme using Spurs colors.
-- **Accessible:** Built with semantic HTML and ARIA attributes.
+---
 
-## Project Structure
+## Table of Contents
+- [What This Is](#what-this-is)
+- [Model Evolution](#model-evolution)
+- [Repo Structure](#repo-structure)
+- [Quick Start](#quick-start)
+- [Data Provenance](#data-provenance)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+## What This Is
+
+Each Finals game gets a frozen, single-file HTML artifact published to mr.danoff.org:
+
+1. Pull SAS playoff games from SportRadar NBA API
+2. Fit a hierarchical logistic regression (adaptive Metropolis-Hastings, 10,000 post-warmup draws)
+3. Export posterior medians + 90% CIs to a self-contained page (conic-gradient gauge, scenario table, posterior histogram)
+
+No build step, no framework, works offline.
+
+## Model Evolution
+
+| Version | Series State | Hierarchies | Games (n) | Posterior Median (Comeback) |
+|---------|--------------|-------------|-----------|------------------------------|
+| **v2** | 0-2 | 2 (Finals NYK, Other Playoffs) | 20 | **0.9%** [0.0%, 0.6%] — Finals avg |
+| **v3** | 1-2 | 3 (Finals NYK, Pre-Finals NYK, Other Playoffs) | 24 | **4.9%** [0.0%, 27.4%] Finals avg · **62.1%** [2.8%, 99.8%] Game 3 level · **42.0%** [0.9%, 92.7%] Midpoint |
+
+v3 adds the third group (2 regular season + NBA Cup Final vs NYK) and a home/away indicator. Wide intervals are intentional — with n=3 Finals games, uncertainty is irreducible.
+
+## Repo Structure
 
 ```text
 spurs-comeback/
-├── README.md
-├── package.json
-└── src/
-    └── index.html      # Single-file application (HTML, CSS, JS)
-
-
-<!-- ## Setup Instructions
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/202606-spurs-prediction-model.git
-   cd 202606-spurs-prediction-model
-   ```
-
-2. **Install dependencies:**
-   Make sure you have Node.js installed. Then run:
-   ```bash
-   npm install
-   ```
-
-3. **Run the application:**
-   Open `src/index.html` in your web browser to view the application.
-
-Installation
-Clone the repository:
-bash
-12
-Install dependencies:
-bash
-1
-Start the development server:
-bash
-1
-Open your browser to http://127.0.0.1:8080 (or the port shown in terminal).
-
-
- -->
-
-## Usage
-
-Use the sliders to adjust the scenario levers.
-Watch the gauge update instantly with the new probability.
-The "Reset to Baseline" button returns all sliders to neutral positions.
-
-## Mathematical Approach
-
-The model calculates the probability of winning 4 games before losing 3 more (since the series is already 0-2).
-Base Probability: Derived from historical data (approx. 0.5 adjusted by lever inputs).
-Levers: Each slider modifies the base probability by a specific weight.
-Simulation: Runs 100,000 simulated series to determine the frequency of a 4-win outcome.
+├── spurs-finals26-comeback-after-game2.html  # 0-2
+├── spurs-finals26-comeback-after-game3.html  # 1-2
+├── Product_Requirements_Document_PRD_from_ChatGPT.md  # Game 5 automation spec
+├── .gitignore
+├── LICENSE  # BSD-3-Clause
+└── README.md
 
 ## Contributing
 
@@ -94,7 +76,7 @@ Assembled with the help of Claude Sonnet 4.6 Max.
 
 ## Data Sources
 
-The 5 real-data games (labeled src="API" in the code) were retrieved via SportRadar’s NBA feed, accessed through Claude’s built-in sports data tool:
+The datawas retrieved via SportRadar’s NBA feed, accessed via API>
 
 Sportradar AG. (2026). NBA game statistics [Data set]. Sportradar. https://sportradar.com
 
@@ -131,7 +113,6 @@ Hastings, W. K. (1970). Monte Carlo sampling methods using Markov chains and the
 ### PyMC (for the Jupyter notebook version):
 
 Salvatier, J., Wiecki, T. V., & Fonnesbeck, C. (2016). Probabilistic programming in Python using PyMC3. PeerJ Computer Science, 2, e55. https://doi.org/10.7717/peerj-cs.55
-
 
 # Changelog
 
